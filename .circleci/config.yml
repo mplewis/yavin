@@ -4,7 +4,7 @@ jobs:
   'node-12':
     docker:
       - image: circleci/node:12
-    working_directory: ~/typescript-starter
+    working_directory: '~'
     steps:
       - checkout
       # Download and cache dependencies
@@ -19,8 +19,8 @@ jobs:
             - node_modules
           key: v1-dependencies-{{ checksum "package.json" }}
       - run: yarn test
-      - run: yarn cov:send
-      - run: yarn cov:check
+      - store_test_results:
+          path: ~/coverage
 
 workflows:
   version: 2
