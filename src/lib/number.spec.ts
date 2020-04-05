@@ -1,11 +1,13 @@
-// tslint:disable:no-expression-statement
-import test from 'ava';
 import { double, power } from './number';
 
-test('double', (t) => {
-  t.is(double(2), 4);
+describe('double', () => {
+  it('doubles', () => {
+    expect(double(2)).toEqual(4);
+  });
 });
 
-test('power', (t) => {
-  t.is(power(2, 4), 16);
+describe('power', () => {
+  it('works', () => {
+    expect(power(2, 4)).toEqual(16);
+  });
 });
