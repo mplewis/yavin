@@ -1,3 +1,4 @@
+/* eslint-disable import/prefer-default-export */
 /**
  * A sample async function (to demo Typescript's es7 async/await downleveling).
  *
@@ -20,9 +21,7 @@
 export async function asyncABC(): Promise<ReadonlyArray<string>> {
   function somethingSlow(index: 0 | 1 | 2): Promise<string> {
     const storage = 'abc'.charAt(index);
-    return new Promise<string>((resolve) =>
-      // later...
-      resolve(storage));
+    return new Promise<string>((resolve) => resolve(storage));
   }
 
   const a = await somethingSlow(0);
