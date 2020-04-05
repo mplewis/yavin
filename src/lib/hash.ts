@@ -20,7 +20,8 @@ export function sha256(message: string): string {
 }
 
 /**
- * A faster implementation of [[sha256]] which requires the native Node.js module. Browser consumers should use [[sha256]], instead.
+ * A faster implementation of [[sha256]] which requires the native Node.js module.
+ * Browser consumers should use [[sha256]], instead.
  *
  * ### Example (es imports)
  * ```js
