@@ -10,9 +10,8 @@
   "keywords": [],
   "scripts": {
     "describe": "npm-scripts-info",
-    "build": "run-s clean && run-p build:*",
-    "build:main": "tsc -p tsconfig.json",
-    "build:module": "tsc -p tsconfig.module.json",
+    "build": "tsc -p tsconfig.json",
+    "start": "run-s build && node build/main/index.js",
     "fix": "run-s fix:*",
     "fix:1_prettier": "prettier \"src/**/*.ts\" --write",
     "fix:2_eslint": "eslint --fix src/**/*.ts",
@@ -26,7 +25,6 @@
     "doc:publish": "gh-pages -m \"[ci skip] Updates\" -d build/docs",
     "version": "standard-version",
     "reset": "git clean -dfx && git reset --hard && npm i",
-    "clean": "trash build test",
     "prepare-release": "run-s reset test cov:check doc:html version doc:publish",
     "preinstall": "node -e \"if(process.env.npm_execpath.indexOf('yarn') === -1) throw new Error('yavin must be installed with Yarn: https://yarnpkg.com/')\""
   },
@@ -46,12 +44,15 @@
     "node": ">=8.9"
   },
   "dependencies": {
+    "express": "^4.17.1",
+    "googleapis": "^48.0.0",
     "sha.js": "^2.4.11"
   },
   "devDependencies": {
     "@bitjson/npm-scripts-info": "^1.0.0",
     "@bitjson/typedoc": "^0.15.0-0",
     "@types/jest": "^25.2.1",
+    "@types/node": "^13.11.0",
     "@typescript-eslint/eslint-plugin": "^2.26.0",
     "@typescript-eslint/parser": "^2.26.0",
     "cz-conventional-changelog": "^2.1.0",
