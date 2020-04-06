@@ -33,7 +33,6 @@ async function getNewToken(oAuth2Client: any): Promise<void> {
   });
 }
 
-
 /**
  * Create an OAuth2 client with the given credentials, and then execute the
  * given callback function.

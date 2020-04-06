@@ -23,6 +23,7 @@
     }
   },
   "rules": {
-    "import/extensions": "off"
+    "import/extensions": "off",
+    "no-multiple-empty-lines": ["error", { "max": 1 }]
   }
 }
