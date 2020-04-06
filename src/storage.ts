@@ -1,8 +1,9 @@
 import { readFile, writeFile } from 'fs-extra';
 import { join } from 'path';
 
-type NotFound = null
-type Item = any
+type Found = { found: true; value: any }
+type NotFound = { found: false }
+type Result = Found | NotFound
 
 /**
  * A simple key-value store using the filesystem.
@@ -34,21 +35,21 @@ export default class Storage {
    * @param value The data being set
    */
   async set(key: string, value: any): Promise<void> {
-    await writeFile(this.pathTo(key), JSON.stringify(value));
+    return writeFile(this.pathTo(key), JSON.stringify(value));
   }
 
   /**
    * Retrieve a value for a key, deserializing it from JSON.
    * @param key The key for which data is being retreived
    */
-  async get(key: string): Promise<Item | NotFound> {
+  async get(key: string): Promise<Result> {
     let value;
     try {
-      value = readFile(this.pathTo(key));
+      value = await readFile(this.pathTo(key));
     } catch (e) {
       // HACK: other things could go wrong besides file not found - i'm not handling them here
-      return null;
+      return { found: false };
     }
-    return JSON.parse((await value).toString());
+    return { found: true, value: JSON.parse((await value).toString()) };
   }
 }

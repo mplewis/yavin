@@ -1,13 +1,14 @@
-import fs from 'fs';
 import { google } from 'googleapis';
 import prompt from './prompt';
+import Storage from './storage';
+
+const storage = new Storage('./secrets');
 
 // If modifying these scopes, delete token.json.
 const SCOPES = ['https://www.googleapis.com/auth/gmail.modify'];
-// The file token.json stores the user's access and refresh tokens, and is
+// The token inside storage stores the user's access and refresh tokens, and is
 // created automatically when the authorization flow completes for the first
 // time.
-const TOKEN_PATH = 'token.json';
 
 /**
  * Get and store new token after prompting for user authorization, and then
@@ -22,14 +23,13 @@ async function getNewToken(oAuth2Client: any): Promise<void> {
   });
   console.log('Authorize this app by visiting this url:', authUrl);
   const code = await prompt('Enter the code from that page here:');
-  oAuth2Client.getToken(code, (err: Error, token: any) => {
+  oAuth2Client.getToken(code, async (err: Error, token: any) => {
     if (err) return console.error('Error retrieving access token', err);
     oAuth2Client.setCredentials(token);
     // Store the token to disk for later program executions
-    fs.writeFile(TOKEN_PATH, JSON.stringify(token), (err) => {
-      if (err) return console.error(err);
-      console.log('Token stored to', TOKEN_PATH);
-    });
+    await storage.set('token', token);
+    console.log('Token stored');
+    return null;
   });
 }
 
@@ -39,19 +39,21 @@ async function getNewToken(oAuth2Client: any): Promise<void> {
  * @param {Object} credentials The authorization client credentials.
  * @param {function} callback The callback to call with the authorized client.
  */
-function authorize(credentials: any, callback: (c: any) => void): void {
+async function authorize(credentials: any, callback: (c: any) => void): Promise<void> {
   const { client_secret, client_id, redirect_uris } = credentials.installed;
   const oAuth2Client = new google.auth.OAuth2(
     client_id, client_secret, redirect_uris[0],
   );
 
   // Check if we have previously stored a token.
-  fs.readFile(TOKEN_PATH, async (err, token) => {
-    if (err) return getNewToken(oAuth2Client);
-    oAuth2Client.setCredentials(JSON.parse(token.toString()));
-    callback(oAuth2Client);
-    return null;
-  });
+  const token = await storage.get('token');
+  if (!token.found) {
+    getNewToken(oAuth2Client);
+    return;
+  }
+
+  oAuth2Client.setCredentials(token.value);
+  callback(oAuth2Client);
 }
 
 /**
@@ -80,9 +82,11 @@ function listLabels(auth: any): void {
   });
 }
 
-// Load client secrets from a local file.
-fs.readFile('credentials.json', (err, content) => {
-  if (err) return console.log('Error loading client secret file:', err);
-  // Authorize a client with credentials, then call the Gmail API.
-  authorize(JSON.parse(content.toString()), listLabels);
-});
+async function main(): Promise<void> {
+  // Load client secrets from a local file.
+  const credentials = await storage.get('credentials');
+  if (!credentials.found) throw new Error('No credentials found in storage');
+  authorize(credentials.value, listLabels);
+}
+
+main();
