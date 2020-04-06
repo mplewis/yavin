@@ -1,9 +1,9 @@
 import fs from 'fs';
-import readline from 'readline';
 import { google } from 'googleapis';
+import prompt from './prompt';
 
 // If modifying these scopes, delete token.json.
-const SCOPES = ['https://www.googleapis.com/auth/gmail.readonly'];
+const SCOPES = ['https://www.googleapis.com/auth/gmail.modify'];
 // The file token.json stores the user's access and refresh tokens, and is
 // created automatically when the authorization flow completes for the first
 // time.
@@ -15,28 +15,20 @@ const TOKEN_PATH = 'token.json';
  * @param {google.auth.OAuth2} oAuth2Client The OAuth2 client to get token for.
  * @param {getEventsCallback} callback The callback for the authorized client.
  */
-function getNewToken(oAuth2Client: any, callback: any) {
+async function getNewToken(oAuth2Client: any): Promise<void> {
   const authUrl = oAuth2Client.generateAuthUrl({
     access_type: 'offline',
     scope: SCOPES,
   });
   console.log('Authorize this app by visiting this url:', authUrl);
-  const rl = readline.createInterface({
-    input: process.stdin,
-    output: process.stdout,
-  });
-  rl.question('Enter the code from that page here: ', (code) => {
-    rl.close();
-    oAuth2Client.getToken(code, (err: Error, token: any) => {
-      if (err) return console.error('Error retrieving access token', err);
-      oAuth2Client.setCredentials(token);
-      // Store the token to disk for later program executions
-      fs.writeFile(TOKEN_PATH, JSON.stringify(token), (err) => {
-        if (err) return console.error(err);
-        console.log('Token stored to', TOKEN_PATH);
-      });
-      callback(oAuth2Client);
-      return null;
+  const code = await prompt('Enter the code from that page here:');
+  oAuth2Client.getToken(code, (err: Error, token: any) => {
+    if (err) return console.error('Error retrieving access token', err);
+    oAuth2Client.setCredentials(token);
+    // Store the token to disk for later program executions
+    fs.writeFile(TOKEN_PATH, JSON.stringify(token), (err) => {
+      if (err) return console.error(err);
+      console.log('Token stored to', TOKEN_PATH);
     });
   });
 }
@@ -55,8 +47,8 @@ function authorize(credentials: any, callback: (c: any) => void): void {
   );
 
   // Check if we have previously stored a token.
-  fs.readFile(TOKEN_PATH, (err, token) => {
-    if (err) return getNewToken(oAuth2Client, callback);
+  fs.readFile(TOKEN_PATH, async (err, token) => {
+    if (err) return getNewToken(oAuth2Client);
     oAuth2Client.setCredentials(JSON.parse(token.toString()));
     callback(oAuth2Client);
     return null;
