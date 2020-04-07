@@ -23,7 +23,9 @@
     }
   },
   "rules": {
+    "@typescript-eslint/camelcase": "off",
     "import/extensions": "off",
+    "no-console": "off",
     "no-multiple-empty-lines": ["error", { "max": 1 }]
   }
 }
