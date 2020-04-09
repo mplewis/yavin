@@ -32,6 +32,9 @@ export function selectPart(parts: MessagePart[]): MessagePart {
 
 /**
  * Extract some useful text content from a message, if possible. Prefer body, then parts.
+ *
+ * TODO: Extract text from HTML
+ *
  * @param message The message from which to extract content
  */
 export function extractContent(message: Message): string | null {
