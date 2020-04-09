@@ -1,28 +1,10 @@
 import createClient from './auth';
-import { decode } from './util';
+import { decode, headerPairsToHash } from './util';
 import { listThreads, getThread } from './gmail_api';
-import { MessagePart } from './types';
+import { selectPart } from './message';
 
 // If modifying these scopes, delete token.json.
 const SCOPES = ['https://www.googleapis.com/auth/gmail.modify'];
-
-const PREFERRED_MIMETYPES = [
-  'text/plain',
-  'text/html',
-];
-
-type SNU = string | null | undefined
-type Pair = { name?: SNU; value?: SNU }
-type Hash = { [key: string]: string }
-function headerPairsToHash(pairs: Pair[]): Hash {
-  const hash: Hash = {};
-  pairs.forEach(({ name, value }) => {
-    if (!name) return;
-    if (!value) return;
-    hash[name] = value;
-  });
-  return hash;
-}
 
 // async function getAttachment(client: GmailClient, id: string): Promise<MessagePartBody> {
 //   const resp = await client.users.messages.attachments.get({ userId: 'me', id });
@@ -41,16 +23,6 @@ function headerPairsToHash(pairs: Pair[]): Hash {
 //   if (!data) throw new Error('Message contained neither data nor reference to attachment');
 //   return data;
 // }
-
-function selectPart(parts: MessagePart[]): MessagePart {
-  let selected: MessagePart | undefined;
-  PREFERRED_MIMETYPES.forEach((preferred) => {
-    if (selected) return;
-    selected = parts.find((part) => part.mimeType === preferred);
-  });
-  if (selected) return selected;
-  return parts[0];
-}
 
 const COUNT = 5;
 const OFFSET = 0;
