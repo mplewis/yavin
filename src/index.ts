@@ -1,8 +1,7 @@
 import { gmail_v1 as GmailV1 } from 'googleapis';
-import base64 from 'base64-js';
-import { TextDecoder } from 'util';
 import createClient from './auth';
 import { GmailClient } from './types';
+import { decode } from './util';
 
 type Thread = GmailV1.Schema$Thread
 type Message = GmailV1.Schema$Message
@@ -70,11 +69,6 @@ function selectPart(parts: MessagePart[]): MessagePart {
   });
   if (selected) return selected;
   return parts[0];
-}
-
-function decode(b64data: string): string {
-  const body = base64.toByteArray(b64data);
-  return new TextDecoder().decode(body);
 }
 
 const COUNT = 5;
