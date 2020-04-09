@@ -1,3 +1,4 @@
+/* eslint-disable import/no-extraneous-dependencies */
 import { dir } from 'tmp-promise';
 import Storage from './storage';
 

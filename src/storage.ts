@@ -1,6 +1,7 @@
 import { readFile, writeFile } from 'fs-extra';
 import { join } from 'path';
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 type Found = { found: true; value: any }
 type NotFound = { found: false }
 type Result = Found | NotFound
@@ -29,6 +30,7 @@ export default class Storage {
     return join(this.basePath, key);
   }
 
+  /* eslint-disable @typescript-eslint/no-explicit-any */
   /**
    * Store a value in a key, serializing it as JSON.
    * @param key The key for which data is being set
@@ -37,6 +39,7 @@ export default class Storage {
   async set(key: string, value: any): Promise<void> {
     return writeFile(this.pathTo(key), JSON.stringify(value));
   }
+  /* eslint-enable @typescript-eslint/no-explicit-any */
 
   /**
    * Retrieve a value for a key, deserializing it from JSON.
