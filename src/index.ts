@@ -1,12 +1,7 @@
-import { gmail_v1 as GmailV1 } from 'googleapis';
 import createClient from './auth';
-import { GmailClient } from './types';
 import { decode } from './util';
-
-type Thread = GmailV1.Schema$Thread
-type Message = GmailV1.Schema$Message
-type MessagePart = GmailV1.Schema$MessagePart
-// type MessagePartBody = GmailV1.Schema$MessagePartBody
+import { listThreads, getThread } from './gmail_api';
+import { MessagePart } from './types';
 
 // If modifying these scopes, delete token.json.
 const SCOPES = ['https://www.googleapis.com/auth/gmail.modify'];
@@ -15,20 +10,6 @@ const PREFERRED_MIMETYPES = [
   'text/plain',
   'text/html',
 ];
-
-async function listThreads(client: GmailClient): Promise<Thread[]> {
-  const resp = await client.users.threads.list({ userId: 'me' });
-  const { threads } = resp.data;
-  if (!threads) return [];
-  return threads;
-}
-
-async function getThread(client: GmailClient, id: string): Promise<Message[]> {
-  const resp = await client.users.threads.get({ userId: 'me', id });
-  const { messages } = resp.data;
-  if (!messages) throw new Error('thread has no messages');
-  return messages;
-}
 
 type SNU = string | null | undefined
 type Pair = { name?: SNU; value?: SNU }
