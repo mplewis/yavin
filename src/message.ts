@@ -17,7 +17,7 @@ export function selectPart(parts: MessagePart[]): MessagePart {
   let selected: MessagePart | undefined;
   PREFERRED_MIMETYPES.forEach((preferred) => {
     if (selected) return;
-    selected = parts.find((part) => part.mimeType === preferred);
+    selected = parts.find((part) => part.mimeType === preferred && part.body?.data);
   });
   if (selected) return selected;
   return parts[0];

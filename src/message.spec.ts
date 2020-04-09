@@ -10,6 +10,14 @@ describe('selectPart', () => {
     expect(selectPart(parts).body?.data).toEqual("I'm a text part!");
   });
 
+  it('skips parts without body data', () => {
+    const parts: MessagePart[] = [
+      { mimeType: 'text/html', body: { data: "<p>I'm an HTML part!</p>" } },
+      { mimeType: 'text/plain', body: {} },
+    ];
+    expect(selectPart(parts).body?.data).toEqual("<p>I'm an HTML part!</p>");
+  });
+
   it('prefers known types', () => {
     const parts: MessagePart[] = [
       { mimeType: 'non/sense', body: { data: 'fhqwhgads' } },
