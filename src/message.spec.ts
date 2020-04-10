@@ -1,7 +1,8 @@
 import {
-  selectPart, extractContent, contentTypeFor, categorize,
+  selectPart, extractContent, extractPlaintextContent, contentTypeFor, categorize,
 } from './message';
 import { MessagePart, Message } from './types';
+import { encode as e } from './util';
 
 describe('contentTypeFor', () => {
   it('converts as expected', () => {
@@ -71,10 +72,10 @@ describe('extractContent', () => {
   it('prefers body to parts', () => {
     const message: Message = {
       payload: {
-        body: { data: 'SSBzYWlkIGNvbWUgb24sIGZocXdoZ2Fkcw==' },
+        body: { data: e('I said come on, fhqwhgads') },
         parts: [
-          { mimeType: 'text/html', body: { data: 'ZXZlcnlib2R5IHRvIHRoZSBsaW1pdA==' } },
-          { mimeType: 'text/plain', body: { data: 'ZXZlcnlib2R5LCBjb21lIG9uLCBmaHF3aGdhZHMh' } },
+          { mimeType: 'text/html', body: { data: e('everybody to the limit') } },
+          { mimeType: 'text/plain', body: { data: e('everybody, come on, fhqwhgads!') } },
         ],
       },
     };
@@ -87,8 +88,8 @@ describe('extractContent', () => {
     const message: Message = {
       payload: {
         parts: [
-          { mimeType: 'non/sense', body: { data: 'ZXZlcnlib2R5IHRvIHRoZSBsaW1pdA==' } },
-          { mimeType: 'the/limit', body: { data: 'ZXZlcnlib2R5LCBjb21lIG9uLCBmaHF3aGdhZHMh' } },
+          { mimeType: 'non/sense', body: { data: e('everybody to the limit') } },
+          { mimeType: 'the/limit', body: { data: e('everybody, come on, fhqwhgads!') } },
         ],
       },
     };
@@ -101,8 +102,8 @@ describe('extractContent', () => {
     const message: Message = {
       payload: {
         parts: [
-          { mimeType: 'text/html', body: { data: 'ZXZlcnlib2R5IHRvIHRoZSBsaW1pdA==' } },
-          { mimeType: 'text/plain', body: { data: 'ZXZlcnlib2R5LCBjb21lIG9uLCBmaHF3aGdhZHMh' } },
+          { mimeType: 'text/html', body: { data: e('everybody to the limit') } },
+          { mimeType: 'text/plain', body: { data: e('everybody, come on, fhqwhgads!') } },
         ],
       },
     };
@@ -121,5 +122,55 @@ describe('extractContent', () => {
       },
     };
     expect(extractContent(message)).toEqual(null);
+  });
+});
+
+describe('extractPlaintextContent', () => {
+  it('returns `body` as-is if it lacks basic HTML markers', () => {
+    const message: Message = {
+      payload: {
+        body: { data: e('<three> gallons <bakers chocolate>') },
+      },
+    };
+    expect(extractPlaintextContent(message)).toEqual('<three> gallons <bakers chocolate>');
+  });
+
+  it('automatically strips tags when `body` seems to contain HTML', () => {
+    const message: Message = {
+      payload: {
+        body: { data: e('<html><strong>4.5 kilograms</strong> organic celery</html>') },
+      },
+    };
+    expect(extractPlaintextContent(message)).toEqual('4.5 kilograms organic celery');
+  });
+
+  describe('when `parts` provide explicit mimetypes', () => {
+    it('leaves plaintext alone', () => {
+      const message: Message = {
+        payload: {
+          parts: [
+            {
+              mimeType: 'text/plain',
+              body: { data: e('seven opening tags, any kind (e.g. <html>)') },
+            },
+          ],
+        },
+      };
+      expect(extractPlaintextContent(message)).toEqual('seven opening tags, any kind (e.g. <html>)');
+    });
+
+    it('strips tags from html', () => {
+      const message: Message = {
+        payload: {
+          parts: [
+            {
+              mimeType: 'text/html',
+              body: { data: e('<html>approx. <strong>3,500 millipedes</strong> from Muir Woods') },
+            },
+          ],
+        },
+      };
+      expect(extractPlaintextContent(message)).toEqual('approx. 3,500 millipedes from Muir Woods');
+    });
   });
 });

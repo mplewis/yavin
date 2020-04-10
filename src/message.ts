@@ -1,3 +1,4 @@
+import striptags from 'striptags';
 import { MessagePart, Message, SNU } from './types';
 import { decode } from './util';
 
@@ -92,4 +93,15 @@ export function extractContent(message: Message): Content | null {
   const body = decode(partData);
   const kind = contentTypeFor(preferredPart.mimeType);
   return { body, kind };
+}
+
+/**
+ * Extract plaintext content from a message, if possible. If only HTML is present, strip the tags.
+ * @param message The message from which to extract plaintext content
+ */
+export function extractPlaintextContent(message: Message): string | null {
+  const content = extractContent(message);
+  if (!content) return null;
+  if (content.kind === 'plaintext') return content.body;
+  return striptags(content.body);
 }
