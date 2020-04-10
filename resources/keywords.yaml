@@ -1,0 +1,50 @@
+covid19:
+  - covid
+  - covid19
+  - covid-19
+  - coronavirus
+
+agency:
+  - WHO
+  - World Health Organization
+  - CDC
+  - Disease Control
+  - Small Business Administration
+  - SBA
+
+places:
+  - Japan
+  - Wuhan
+  - China
+  - Italy
+  - South Korea
+
+illness:
+  - coughing
+  - throat
+  - pneumonia
+  - fever
+  - chills
+  - treatment
+  - vaccine
+  - infected
+  - soap
+  - alcohol
+
+politics:
+  - trump
+  - administration
+  - relief
+
+scare_words:
+  - emergency
+  - outbreak
+  - safe
+  - confidential
+  - isolate
+  - effective
+  - killing
+  - ultraviolet
+  - UV
+  - hospital
+  - ventilator
