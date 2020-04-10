@@ -1,9 +1,18 @@
 import base64 from 'base64-js';
-import { TextDecoder } from 'util';
+import { TextEncoder, TextDecoder } from 'util';
 import { SNU } from './types';
 
 type Pair = { name?: SNU; value?: SNU }
 type Hash = { [key: string]: string }
+
+/**
+ * Encode UTF-8 string data into a base64 string.
+ * @param b64data The base64 string to be encoded
+ */
+export function encode(body: string): string {
+  const b64data = new TextEncoder().encode(body);
+  return base64.fromByteArray(b64data);
+}
 
 /**
  * Decode a base64 string into UTF-8 string data.
