@@ -1,7 +1,7 @@
 import base64 from 'base64-js';
 import { TextDecoder } from 'util';
+import { SNU } from './types';
 
-type SNU = string | null | undefined
 type Pair = { name?: SNU; value?: SNU }
 type Hash = { [key: string]: string }
 

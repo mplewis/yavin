@@ -1,5 +1,7 @@
 import { gmail_v1 as GmailV1 } from 'googleapis';
 
+export type SNU = string | null | undefined
+
 export type GmailClient = GmailV1.Gmail
 
 export type Thread = GmailV1.Schema$Thread
