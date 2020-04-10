@@ -1,5 +1,23 @@
-import { selectPart, extractContent } from './message';
+import {
+  selectPart, extractContent, contentTypeFor, categorize,
+} from './message';
 import { MessagePart, Message } from './types';
+
+describe('contentTypeFor', () => {
+  it('converts as expected', () => {
+    expect(contentTypeFor('text/plain')).toEqual('plaintext');
+    expect(contentTypeFor('text/html')).toEqual('html');
+    expect(contentTypeFor('image/jpeg')).toEqual('unknown');
+    expect(contentTypeFor(undefined)).toEqual('unknown');
+  });
+});
+
+describe('categorize', () => {
+  it('categorizes as expected', () => {
+    expect(categorize('You just won a FREE cruise to literally anywhere!')).toEqual('plaintext');
+    expect(categorize('<html><body>Please, we need people to buy cruises')).toEqual('html');
+  });
+});
 
 describe('selectPart', () => {
   it('selects text parts first', () => {
@@ -60,7 +78,9 @@ describe('extractContent', () => {
         ],
       },
     };
-    expect(extractContent(message)).toEqual('I said come on, fhqwhgads');
+    expect(extractContent(message)).toEqual(
+      { kind: 'plaintext', body: 'I said come on, fhqwhgads' },
+    );
   });
 
   it('uses the first part if no known types are present', () => {
@@ -72,7 +92,9 @@ describe('extractContent', () => {
         ],
       },
     };
-    expect(extractContent(message)).toEqual('everybody to the limit');
+    expect(extractContent(message)).toEqual(
+      { kind: 'unknown', body: 'everybody to the limit' },
+    );
   });
 
   it('obeys mimetype preference when using parts', () => {
@@ -84,7 +106,9 @@ describe('extractContent', () => {
         ],
       },
     };
-    expect(extractContent(message)).toEqual('everybody, come on, fhqwhgads!');
+    expect(extractContent(message)).toEqual(
+      { kind: 'plaintext', body: 'everybody, come on, fhqwhgads!' },
+    );
   });
 
   it('returns null when no content is available', () => {
