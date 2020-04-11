@@ -34,8 +34,6 @@ async function askUserForAuthorization(
       return resolve(resp);
     });
   });
-  // const token = await promisify(client.getToken)(code);
-  // return token;
 }
 
 /**
