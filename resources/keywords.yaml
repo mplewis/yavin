@@ -3,6 +3,7 @@ covid19:
   - covid19
   - covid-19
   - coronavirus
+  - corona-virus
 
 agency:
   - WHO
@@ -11,6 +12,9 @@ agency:
   - Disease Control
   - Small Business Administration
   - SBA
+  - United Nations
+  - United Nation
+  - UN
 
 places:
   - Japan
@@ -48,3 +52,13 @@ scare_words:
   - UV
   - hospital
   - ventilator
+
+sales:
+  - market
+  - opportunity
+  - competition
+  - selling
+  - sales
+  - amazon
+  - profit
+  - client
