@@ -9,6 +9,7 @@ import {
   parseKeywordLists,
   analyzeWords,
 } from './classify';
+import { StrNum } from './types';
 
 describe('stem', () => {
   it('calls the stemmer', () => {
@@ -51,7 +52,7 @@ describe('stemAndCount', () => {
       await readFile(join('fixtures', 'text', 'neuromancer.txt'))
     ).toString();
     const results = stemAndCount(text);
-    const twoOrMore: { [word: string]: number } = {};
+    const twoOrMore: StrNum = {};
     Object.entries(results)
       .filter(([, count]) => count >= 2)
       .forEach(([word, count]) => {

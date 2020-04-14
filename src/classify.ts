@@ -1,15 +1,17 @@
 import stemmer from 'wink-porter2-stemmer';
 import yaml from 'js-yaml';
+import { StrNum } from './types';
 
 type List = { name: string; words: string[]; phrases: string[] }
+type Hits = StrNum
 
 /**
  * Count instances of unique strings.
  *
  * https://stackoverflow.com/a/15052738/254187
  */
-function count(arr: string[]): { [k: string]: number } {
-  const counts: { [k: string]: number } = {};
+function count(arr: string[]): StrNum {
+  const counts: StrNum = {};
   for (let i = 0; i < arr.length; i += 1) {
     counts[arr[i]] = 1 + (counts[arr[i]] || 0);
   }
@@ -54,7 +56,7 @@ export function extractWords(text: string): string[] {
  * Given input text, extract all the words, stem each one, and count instances of each stem.
  * @param text The text to analyze
  */
-export function stemAndCount(text: string): { [word: string]: number } {
+export function stemAndCount(text: string): StrNum {
   return count(extractWords(text).map((w) => stem(w)));
 }
 
@@ -94,8 +96,8 @@ export function parseKeywordLists(rawYaml: string): List[] {
  * @param bodyWords The body of the document to be analyzed
  * @param lists The lists to search for matches
  */
-export function analyzeWords(body: string, lists: List[]): { [name: string]: number } {
-  const results: { [name: string]: number } = {};
+export function analyzeWords(body: string, lists: List[]): StrNum {
+  const results: StrNum = {};
   const bodyWordCount = stemAndCount(body);
   console.log(bodyWordCount);
   lists.forEach(({ name, words }) => {

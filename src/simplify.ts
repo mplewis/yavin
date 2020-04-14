@@ -1,8 +1,6 @@
-import { Message } from './types';
+import { Message, StrStr } from './types';
 import { extractPlaintextContent } from './message';
 import { headerPairsToHash } from './util';
-
-type StrStr = { [key: string]: string }
 
 type SimpleMessage = {
   date: Date;
