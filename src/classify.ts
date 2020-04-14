@@ -10,7 +10,7 @@ type Hits = StrNum
  *
  * https://stackoverflow.com/a/15052738/254187
  */
-function count(arr: string[]): StrNum {
+function countUniqueStrings(arr: string[]): StrNum {
   const counts: StrNum = {};
   for (let i = 0; i < arr.length; i += 1) {
     counts[arr[i]] = 1 + (counts[arr[i]] || 0);
@@ -57,7 +57,7 @@ export function extractWords(text: string): string[] {
  * @param text The text to analyze
  */
 export function stemAndCount(text: string): StrNum {
-  return count(extractWords(text).map((w) => stem(w)));
+  return countUniqueStrings(extractWords(text).map((w) => stem(w)));
 }
 
 /**
@@ -121,4 +121,24 @@ export function analyzePhrases(body: string, lists: List[]): Hits {
     });
   });
   return results;
+}
+
+/**
+ * Sum the counts from two or more Hits results.
+ * @param objects The string-number hashes to combine
+ */
+function combineCounts(...hits: Hits[]): StrNum {
+  const results: StrNum = {};
+  hits.forEach((hit) => {
+    Object.entries(hit).forEach(([name, count]) => {
+      results[name] = (results[name] || 0) + count;
+    });
+  });
+  return results;
+}
+
+export function analyze(body: string, lists: List[]): Hits {
+  const wordHits = analyzeWords(body, lists);
+  const phraseHits = analyzePhrases(body, lists);
+  return combineCounts(wordHits, phraseHits);
 }

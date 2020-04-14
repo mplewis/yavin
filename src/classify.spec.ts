@@ -9,6 +9,7 @@ import {
   parseKeywordLists,
   analyzeWords,
   analyzePhrases,
+  analyze,
 } from './classify';
 import { StrNum } from './types';
 
@@ -144,7 +145,7 @@ describe('with a document and keyword list', () => {
   `;
 
   describe('analyzeWords', () => {
-    it('analyzes a document for keyword list hits', async () => {
+    it('analyzes a document for word hits', async () => {
       expect(analyzeWords(body, keywordLists)).toMatchInlineSnapshot(`
         Object {
           "conspiracy": 2,
@@ -156,12 +157,24 @@ describe('with a document and keyword list', () => {
   });
 
   describe('analyzePhrases', () => {
-    it('analyzes a document for keyword list hits', async () => {
+    it('analyzes a document for phrase hits', async () => {
       expect(analyzePhrases(body, keywordLists)).toMatchInlineSnapshot(`
         Object {
           "conspiracy": 1,
           "fraud": 0,
           "theft": 2,
+        }
+      `);
+    });
+  });
+
+  describe('analyze', () => {
+    it('analyzes a document for keyword and phrase hits', async () => {
+      expect(analyze(body, keywordLists)).toMatchInlineSnapshot(`
+        Object {
+          "conspiracy": 3,
+          "fraud": 0,
+          "theft": 5,
         }
       `);
     });
