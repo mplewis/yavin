@@ -87,3 +87,23 @@ export function parseKeywordLists(rawYaml: string): List[] {
   });
   return lists;
 }
+
+/**
+ * Analyze the words in a document and return the number of hits in each list.
+ * Keywords occurring multiple times are counted multiple times.
+ * @param bodyWords The body of the document to be analyzed
+ * @param lists The lists to search for matches
+ */
+export function analyzeWords(body: string, lists: List[]): { [name: string]: number } {
+  const results: { [name: string]: number } = {};
+  const bodyWordCount = stemAndCount(body);
+  console.log(bodyWordCount);
+  lists.forEach(({ name, words }) => {
+    results[name] = words.reduce((total, word) => {
+      console.log({ word, count: bodyWordCount[word] });
+
+      return total + (bodyWordCount[word] || 0);
+    }, 0);
+  });
+  return results;
+}

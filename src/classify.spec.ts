@@ -7,6 +7,7 @@ import {
   stem,
   stemAndCount,
   parseKeywordLists,
+  analyzeWords,
 } from './classify';
 
 describe('stem', () => {
@@ -126,6 +127,27 @@ describe('parseKeywordLists', () => {
           ],
         },
       ]
+    `);
+  });
+});
+
+describe('analyzeWords', () => {
+  it('analyzes a document for keyword list hits', async () => {
+    const rawYaml = (
+      await readFile(join('fixtures', 'keywords.yaml'))
+    ).toString();
+    const keywordLists = parseKeywordLists(rawYaml);
+    const body = `
+      Hey, did you perform that espionage I asked you about?
+      The boss is asking for all the IP you stole.
+      Remember, this is part of our alliance's agreement.
+    `;
+    expect(analyzeWords(body, keywordLists)).toMatchInlineSnapshot(`
+      Object {
+        "conspiracy": 2,
+        "fraud": 0,
+        "theft": 2,
+      }
     `);
   });
 });
