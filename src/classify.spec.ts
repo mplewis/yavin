@@ -10,6 +10,8 @@ import {
   analyzeWords,
   analyzePhrases,
   analyze,
+  tag,
+  relativeFrequency,
 } from './classify';
 import { StrNum } from './types';
 
@@ -145,7 +147,7 @@ describe('with a document and keyword list', () => {
   `;
 
   describe('analyzeWords', () => {
-    it('analyzes a document for word hits', async () => {
+    it('analyzes a document for word hits', () => {
       expect(analyzeWords(body, keywordLists)).toMatchInlineSnapshot(`
         Object {
           "conspiracy": 2,
@@ -157,7 +159,7 @@ describe('with a document and keyword list', () => {
   });
 
   describe('analyzePhrases', () => {
-    it('analyzes a document for phrase hits', async () => {
+    it('analyzes a document for phrase hits', () => {
       expect(analyzePhrases(body, keywordLists)).toMatchInlineSnapshot(`
         Object {
           "conspiracy": 1,
@@ -169,7 +171,7 @@ describe('with a document and keyword list', () => {
   });
 
   describe('analyze', () => {
-    it('analyzes a document for keyword and phrase hits', async () => {
+    it('analyzes a document for keyword and phrase hits', () => {
       expect(analyze(body, keywordLists)).toMatchInlineSnapshot(`
         Object {
           "conspiracy": 3,
@@ -177,6 +179,22 @@ describe('with a document and keyword list', () => {
           "theft": 5,
         }
       `);
+    });
+  });
+
+  describe('relativeFrequency', () => {
+    it('returns the relative frequencies of hits in keyword lists', () => {
+      const result = relativeFrequency(body, keywordLists);
+      expect(result.conspiracy).toBeCloseTo(0.06);
+      expect(result.fraud).toEqual(0);
+      expect(result.theft).toBeCloseTo(0.10);
+    });
+  });
+
+  describe('tag', () => {
+    it('tags a document based on hit frequency', () => {
+      expect(new Set(tag(body, keywordLists, 0.05))).toEqual(new Set(['theft', 'conspiracy']));
+      expect(new Set(tag(body, keywordLists, 0.10))).toEqual(new Set(['theft']));
     });
   });
 });
