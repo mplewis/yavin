@@ -5,7 +5,6 @@ import Storage from './storage';
 async function instance(): Promise<Storage> {
   // tmp will clean up after itself at process exit
   const { path } = await dir({ unsafeCleanup: true });
-  console.log(path);
   return new Storage(path);
 }
 
