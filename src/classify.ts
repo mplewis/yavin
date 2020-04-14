@@ -96,16 +96,29 @@ export function parseKeywordLists(rawYaml: string): List[] {
  * @param bodyWords The body of the document to be analyzed
  * @param lists The lists to search for matches
  */
-export function analyzeWords(body: string, lists: List[]): StrNum {
+export function analyzeWords(body: string, lists: List[]): Hits {
   const results: StrNum = {};
   const bodyWordCount = stemAndCount(body);
-  console.log(bodyWordCount);
   lists.forEach(({ name, words }) => {
-    results[name] = words.reduce((total, word) => {
-      console.log({ word, count: bodyWordCount[word] });
+    results[name] = words.reduce((total, word) => total + (bodyWordCount[word] || 0), 0);
+  });
+  return results;
+}
 
-      return total + (bodyWordCount[word] || 0);
-    }, 0);
+/**
+ * Analyze the phrases in a document and return the number of hits in each list.
+ * Phrases occurring multiple times are counted multiple times.
+ * @param bodyWords The body of the document to be analyzed
+ * @param lists The lists to search for matches
+ */
+export function analyzePhrases(body: string, lists: List[]): Hits {
+  const results: StrNum = {};
+  lists.forEach(({ name, phrases }) => {
+    phrases.forEach((phrase) => {
+      const matcher = new RegExp(phrase, 'gi');
+      const hits = (body.match(matcher) || []).length;
+      results[name] = hits;
+    });
   });
   return results;
 }

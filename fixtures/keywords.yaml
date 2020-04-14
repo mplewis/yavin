@@ -1,15 +1,21 @@
 theft:
+  # words
   - IP
   - espionage
+  # phrase
   - Intellectual Property
 
 fraud:
+  # words
   - pyramid
   - Ponzi
   - loophole
+  # phrase
   - contract law
 
 conspiracy:
+  # words
   - alliance
-  - under the table
   - agreement
+  # phrase
+  - under the table

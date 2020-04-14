@@ -1,5 +1,5 @@
 import stemmer from 'wink-porter2-stemmer';
-import { readFile } from 'fs-extra';
+import { readFile, readFileSync } from 'fs-extra';
 import { join } from 'path';
 import {
   extractWords,
@@ -8,6 +8,7 @@ import {
   stemAndCount,
   parseKeywordLists,
   analyzeWords,
+  analyzePhrases,
 } from './classify';
 import { StrNum } from './types';
 
@@ -132,23 +133,37 @@ describe('parseKeywordLists', () => {
   });
 });
 
-describe('analyzeWords', () => {
-  it('analyzes a document for keyword list hits', async () => {
-    const rawYaml = (
-      await readFile(join('fixtures', 'keywords.yaml'))
-    ).toString();
-    const keywordLists = parseKeywordLists(rawYaml);
-    const body = `
-      Hey, did you perform that espionage I asked you about?
-      The boss is asking for all the IP you stole.
-      Remember, this is part of our alliance's agreement.
-    `;
-    expect(analyzeWords(body, keywordLists)).toMatchInlineSnapshot(`
-      Object {
-        "conspiracy": 2,
-        "fraud": 0,
-        "theft": 2,
-      }
-    `);
+describe('with a document and keyword list', () => {
+  const rawYaml = readFileSync(join('fixtures', 'keywords.yaml')).toString();
+  const keywordLists = parseKeywordLists(rawYaml);
+  const body = `
+    Hey, did you perform that espionage I asked you about?
+    The boss is asking for all the IP you stole. He wants the intellectual property badly.
+    Remember, this is part of our alliance's agreement. Keep this under the table.
+    Do not discuss the intellectual property (IP).
+  `;
+
+  describe('analyzeWords', () => {
+    it('analyzes a document for keyword list hits', async () => {
+      expect(analyzeWords(body, keywordLists)).toMatchInlineSnapshot(`
+        Object {
+          "conspiracy": 2,
+          "fraud": 0,
+          "theft": 3,
+        }
+      `);
+    });
+  });
+
+  describe('analyzePhrases', () => {
+    it('analyzes a document for keyword list hits', async () => {
+      expect(analyzePhrases(body, keywordLists)).toMatchInlineSnapshot(`
+        Object {
+          "conspiracy": 1,
+          "fraud": 0,
+          "theft": 2,
+        }
+      `);
+    });
   });
 });
