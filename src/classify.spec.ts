@@ -1,4 +1,4 @@
-import stemmer from 'stemmer';
+import stemmer from 'wink-porter2-stemmer';
 import { readFile } from 'fs-extra';
 import { join } from 'path';
 import {
@@ -10,7 +10,7 @@ import {
 } from './classify';
 
 describe('stem', () => {
-  it('calls stemmer', () => {
+  it('calls the stemmer', () => {
     const words = 'the quick brown fox jumped over the lazy dogs'.split(' ');
     words.forEach((word) => {
       expect(stem(word)).toEqual(stemmer(word));
@@ -67,7 +67,7 @@ describe('stemAndCount', () => {
         "go": 2,
         "he": 7,
         "he'd": 6,
-        "hi": 4,
+        "his": 4,
         "in": 3,
         "it": 4,
         "make": 2,
@@ -78,9 +78,9 @@ describe('stemAndCount', () => {
         "still": 2,
         "sure": 2,
         "the": 11,
-        "thei": 4,
+        "they": 4,
         "to": 6,
-        "wa": 5,
+        "was": 5,
         "welcom": 2,
       }
     `);

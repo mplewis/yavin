@@ -1,4 +1,4 @@
-import stemmer from 'stemmer';
+import stemmer from 'wink-porter2-stemmer';
 import yaml from 'js-yaml';
 
 type List = { name: string; words: string[]; phrases: string[] }

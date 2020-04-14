@@ -6000,11 +6000,6 @@ stealthy-require@^1.1.1:
   resolved "https://registry.yarnpkg.com/stealthy-require/-/stealthy-require-1.1.1.tgz#35b09875b4ff49f26a777e509b3090a3226bf24b"
   integrity sha1-NbCYdbT/SfJqd35QmzCQoyJr8ks=
 
-stemmer@^1.0.5:
-  version "1.0.5"
-  resolved "https://registry.yarnpkg.com/stemmer/-/stemmer-1.0.5.tgz#fd89beaf8bff5d04b6643bfffcaed0fc420deec0"
-  integrity sha512-SLq7annzSKRDStasOJJoftCSCzBCKmBmH38jC4fDtCunAqOzpTpIm9zmaHmwNJiZ8gLe9qpVdBVbEG2DC5dE2A==
-
 strict-uri-encode@^1.0.0:
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/strict-uri-encode/-/strict-uri-encode-1.1.0.tgz#279b225df1d582b1f54e65addd4352e18faa0713"
@@ -6880,6 +6875,11 @@ widest-line@^2.0.0:
   integrity sha512-Ba5m9/Fa4Xt9eb2ELXt77JxVDV8w7qQrH0zS/TWSJdLyAwQjWoOzpzj5lwVftDz6n/EOu3tNACS84v509qwnJA==
   dependencies:
     string-width "^2.1.1"
+
+wink-porter2-stemmer@^2.0.1:
+  version "2.0.1"
+  resolved "https://registry.yarnpkg.com/wink-porter2-stemmer/-/wink-porter2-stemmer-2.0.1.tgz#f7680e584e2b9b4c44766642325671662e98f44a"
+  integrity sha512-0g+RkkqhRXFmSpJQStVXW5N/WsshWpJXsoDRW7DwVkGI2uDT6IBCoq3xdH5p6IHLaC6ygk7RWUsUx4alKxoagQ==
 
 word-wrap@^1.0.3, word-wrap@~1.2.3:
   version "1.2.3"

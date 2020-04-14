@@ -50,8 +50,8 @@
     "googleapis": "^48.0.0",
     "js-yaml": "^3.13.1",
     "sha.js": "^2.4.11",
-    "stemmer": "^1.0.5",
-    "striptags": "^3.1.1"
+    "striptags": "^3.1.1",
+    "wink-porter2-stemmer": "^2.0.1"
   },
   "devDependencies": {
     "@bitjson/npm-scripts-info": "^1.0.0",
