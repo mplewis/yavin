@@ -2,7 +2,11 @@ import stemmer from 'stemmer';
 import { readFile } from 'fs-extra';
 import { join } from 'path';
 import {
-  extractWords, trimPunc, stem, stemAndCount,
+  extractWords,
+  trimPunc,
+  stem,
+  stemAndCount,
+  parseKeywordLists,
 } from './classify';
 
 describe('stem', () => {
@@ -49,9 +53,10 @@ describe('stemAndCount', () => {
     const twoOrMore: { [word: string]: number } = {};
     Object.entries(results)
       .filter(([, count]) => count >= 2)
-      .forEach(([word, count]) => { twoOrMore[word] = count; });
-    expect(twoOrMore).toMatchInlineSnapshot(
-      `
+      .forEach(([word, count]) => {
+        twoOrMore[word] = count;
+      });
+    expect(twoOrMore).toMatchInlineSnapshot(`
       Object {
         "a": 6,
         "and": 3,
@@ -78,7 +83,49 @@ describe('stemAndCount', () => {
         "wa": 5,
         "welcom": 2,
       }
-    `,
-    );
+    `);
+  });
+});
+
+describe('parseKeywordLists', () => {
+  it('parses words and phrases from keyword lists, lowercases all, and stems words', async () => {
+    const rawYaml = (
+      await readFile(join('fixtures', 'keywords.yaml'))
+    ).toString();
+    expect(parseKeywordLists(rawYaml)).toMatchInlineSnapshot(`
+      Array [
+        Object {
+          "name": "theft",
+          "phrases": Array [
+            "intellectual property",
+          ],
+          "words": Array [
+            "ip",
+            "espionag",
+          ],
+        },
+        Object {
+          "name": "fraud",
+          "phrases": Array [
+            "contract law",
+          ],
+          "words": Array [
+            "pyramid",
+            "ponzi",
+            "loophol",
+          ],
+        },
+        Object {
+          "name": "conspiracy",
+          "phrases": Array [
+            "under the table",
+          ],
+          "words": Array [
+            "allianc",
+            "agreement",
+          ],
+        },
+      ]
+    `);
   });
 });

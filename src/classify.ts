@@ -1,4 +1,7 @@
 import stemmer from 'stemmer';
+import yaml from 'js-yaml';
+
+type List = { name: string; words: string[]; phrases: string[] }
 
 /**
  * Count instances of unique strings.
@@ -53,4 +56,34 @@ export function extractWords(text: string): string[] {
  */
 export function stemAndCount(text: string): { [word: string]: number } {
   return count(extractWords(text).map((w) => stem(w)));
+}
+
+/**
+ * Classify an item as a word or a phrase.
+ * @param item The item to classify
+ */
+function wordOrPhrase(item: string): 'word' | 'phrase' {
+  return item.match(/\s/) ? 'phrase' : 'word';
+}
+
+/**
+ * Parse the keywords YAML into Lists.
+ */
+export function parseKeywordLists(rawYaml: string): List[] {
+  const rawObj: { [name: string]: string[] } = yaml.safeLoad(rawYaml);
+  const lists: List[] = [];
+  Object.entries(rawObj).forEach(([name, items]) => {
+    const words: string[] = [];
+    const phrases: string[] = [];
+    items.forEach((rawItem) => {
+      const lowered = rawItem.toLowerCase();
+      if (wordOrPhrase(lowered) === 'phrase') {
+        phrases.push(lowered);
+        return;
+      }
+      words.push(stem(lowered));
+    });
+    lists.push({ name, words, phrases });
+  });
+  return lists;
 }
