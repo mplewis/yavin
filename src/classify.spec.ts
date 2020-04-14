@@ -34,8 +34,7 @@ describe('trimPunc', () => {
 
 describe('extractWords', () => {
   it('extracts words properly', async () => {
-    const text =
-      "He'd made the classic mistake, the one he'd sworn he'd never make.";
+    const text = "He'd made the classic mistake, the one he'd sworn he'd never make.";
     expect(extractWords(text)).toEqual([
       "he'd",
       'made',
@@ -197,7 +196,7 @@ describe('with a document and keyword list', () => {
   describe('tag', () => {
     it('tags a document based on hit frequency', () => {
       expect(new Set(tag(body, keywordLists, 0.05))).toEqual(
-        new Set(['theft', 'conspiracy'])
+        new Set(['theft', 'conspiracy']),
       );
       expect(new Set(tag(body, keywordLists, 0.1))).toEqual(new Set(['theft']));
     });
@@ -206,7 +205,7 @@ describe('with a document and keyword list', () => {
 
 describe('with the real keyword list and real emails', () => {
   const rawKeywords = readFileSync(
-    join('resources', 'keywords.yaml')
+    join('resources', 'keywords.yaml'),
   ).toString();
   const keywordLists = parseKeywordLists(rawKeywords);
 
