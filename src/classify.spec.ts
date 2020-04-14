@@ -1,6 +1,8 @@
 import stemmer from 'wink-porter2-stemmer';
 import { readFile, readFileSync } from 'fs-extra';
 import { join } from 'path';
+import { safeLoad } from 'js-yaml';
+import glob from 'glob';
 import {
   extractWords,
   trimPunc,
@@ -32,7 +34,8 @@ describe('trimPunc', () => {
 
 describe('extractWords', () => {
   it('extracts words properly', async () => {
-    const text = "He'd made the classic mistake, the one he'd sworn he'd never make.";
+    const text =
+      "He'd made the classic mistake, the one he'd sworn he'd never make.";
     expect(extractWords(text)).toEqual([
       "he'd",
       'made',
@@ -187,14 +190,66 @@ describe('with a document and keyword list', () => {
       const result = relativeFrequency(body, keywordLists);
       expect(result.conspiracy).toBeCloseTo(0.06);
       expect(result.fraud).toEqual(0);
-      expect(result.theft).toBeCloseTo(0.10);
+      expect(result.theft).toBeCloseTo(0.1);
     });
   });
 
   describe('tag', () => {
     it('tags a document based on hit frequency', () => {
-      expect(new Set(tag(body, keywordLists, 0.05))).toEqual(new Set(['theft', 'conspiracy']));
-      expect(new Set(tag(body, keywordLists, 0.10))).toEqual(new Set(['theft']));
+      expect(new Set(tag(body, keywordLists, 0.05))).toEqual(
+        new Set(['theft', 'conspiracy'])
+      );
+      expect(new Set(tag(body, keywordLists, 0.1))).toEqual(new Set(['theft']));
     });
+  });
+});
+
+describe('with the real keyword list and real emails', () => {
+  const rawKeywords = readFileSync(
+    join('resources', 'keywords.yaml')
+  ).toString();
+  const keywordLists = parseKeywordLists(rawKeywords);
+
+  type Email = { path: string; from: string; subject: string; body: string };
+  const emailPaths: string[] = glob.sync('fixtures/emails/**/*.yaml');
+  const emails: Email[] = emailPaths.map((path) => ({
+    path,
+    ...safeLoad(readFileSync(path).toString()),
+  }));
+
+  it('tags emails as expected', () => {
+    type Tags = string[];
+    const allTagged: { [subject: string]: Tags } = {};
+    emails.forEach((email) => {
+      const body = `${email.subject}\n${email.body}`;
+      const tags = tag(body, keywordLists, 0.01);
+      allTagged[email.path] = tags;
+    });
+    expect(allTagged).toMatchInlineSnapshot(`
+      Object {
+        "fixtures/emails/legit/1_marketing.yaml": Array [
+          "covid19",
+        ],
+        "fixtures/emails/legit/2_password_reset.yaml": Array [],
+        "fixtures/emails/legit/3_personal.yaml": Array [
+          "sales",
+        ],
+        "fixtures/emails/legit/4_update.yaml": Array [],
+        "fixtures/emails/scam/1_419.yaml": Array [],
+        "fixtures/emails/scam/2_ebook.yaml": Array [
+          "covid19",
+          "places",
+          "scare_words",
+        ],
+        "fixtures/emails/scam/3_donation.yaml": Array [
+          "covid19",
+          "places",
+          "illness",
+        ],
+        "fixtures/emails/scam/4_sales.yaml": Array [
+          "sales",
+        ],
+      }
+    `);
   });
 });
