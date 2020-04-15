@@ -49,8 +49,11 @@
     "google-auth-library": "^6.0.0",
     "googleapis": "^48.0.0",
     "js-yaml": "^3.13.1",
+    "pg": "^8.0.2",
+    "reflect-metadata": "^0.1.13",
     "sha.js": "^2.4.11",
     "striptags": "^3.1.1",
+    "typeorm": "^0.2.24",
     "wink-porter2-stemmer": "^2.0.1"
   },
   "devDependencies": {
