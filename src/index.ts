@@ -9,6 +9,10 @@ import { SNU } from './types';
 // If modifying these scopes, delete token.json.
 const SCOPES = ['https://www.googleapis.com/auth/gmail.modify'];
 
+function keepTruthy<T>(items: (T | null | undefined)[]): T[] {
+  return items.filter(Boolean) as T[];
+}
+
 async function shouldSaveMessage(messageId: SNU): Promise<boolean> {
   if (!messageId) return false;
   const existing = await Message.findOne({ gmailId: messageId });
@@ -19,24 +23,23 @@ async function shouldSaveMessage(messageId: SNU): Promise<boolean> {
   return true;
 }
 
-function keepTruthy<T>(thing: (T | null | undefined)[]): T[] {
-  return thing.filter(Boolean) as T[];
-}
-
 async function main(): Promise<void> {
   const client = await createClient(SCOPES);
   // Sparse messages have message ID and thread ID, nothing else
   const allSparseMessages = await listMessages(client);
   const conn = await createConnection();
 
-  // TODO: Why is this not working properly?
-  const sparseMessagesToRetrieve = keepTruthy(await Promise.all(
+  const someNonTruthy = await Promise.all(
     allSparseMessages.map(async (message) => {
       const shouldSave = await shouldSaveMessage(message.id);
-      if (shouldSave) return null;
+      if (!shouldSave) return null;
       return message;
     }),
-  ));
+  );
+  console.log({ someNonTruthy });
+  const sparseMessagesToRetrieve = keepTruthy(someNonTruthy);
+
+  console.log({ sparseMessagesToRetrieve });
 
   // Hydrate the sparse messages
   const retrievedMessages = await Promise.all(
@@ -45,6 +48,8 @@ async function main(): Promise<void> {
       return getMessage(client, id);
     }),
   );
+
+  console.log({ retrievedMessages });
 
   await Promise.all(retrievedMessages.map(async (messageData) => {
     const message = new Message();
