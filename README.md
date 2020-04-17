@@ -4,7 +4,7 @@ Scan your email for treachery
 
 # TODO
 
-- [ ] Set up a database
+- [x] Set up a database
 - [ ] Ingest emails into the DB idempotently
 - [ ] OAuth with Express server backend
 - [ ] Create Vue frontend
