@@ -16,11 +16,7 @@ function keepTruthy<T>(items: (T | null | undefined)[]): T[] {
 async function shouldSaveMessage(messageId: SNU): Promise<boolean> {
   if (!messageId) return false;
   const existing = await Message.findOne({ gmailId: messageId });
-  if (existing) {
-    console.log(`Message ${messageId} exists already; skipping`);
-    return false;
-  }
-  return true;
+  return !existing;
 }
 
 async function main(): Promise<void> {
@@ -29,17 +25,17 @@ async function main(): Promise<void> {
   const allSparseMessages = await listMessages(client);
   const conn = await createConnection();
 
-  const someNonTruthy = await Promise.all(
+  console.log(`Listed ${allSparseMessages.length} messages`);
+
+  const sparseMessagesToRetrieve = keepTruthy(await Promise.all(
     allSparseMessages.map(async (message) => {
       const shouldSave = await shouldSaveMessage(message.id);
       if (!shouldSave) return null;
       return message;
     }),
-  );
-  console.log({ someNonTruthy });
-  const sparseMessagesToRetrieve = keepTruthy(someNonTruthy);
+  ));
 
-  console.log({ sparseMessagesToRetrieve });
+  console.log(`Retrieving ${sparseMessagesToRetrieve.length} unsaved messages`);
 
   // Hydrate the sparse messages
   const retrievedMessages = await Promise.all(
@@ -49,16 +45,16 @@ async function main(): Promise<void> {
     }),
   );
 
-  console.log({ retrievedMessages });
-
-  await Promise.all(retrievedMessages.map(async (messageData) => {
+  const saveResults = await Promise.all(retrievedMessages.map(async (messageData) => {
     const message = new Message();
     if (!messageData.id) throw new Error('message lacks id');
     message.gmailId = messageData.id;
     message.data = messageData;
     await message.save();
-    console.log(`Saved message ${message.gmailId}`);
+    return true;
   }));
+  const successfulSaves = keepTruthy(saveResults).length;
+  console.log(`Saved ${successfulSaves} messages`);
 
   await conn.close();
 }

@@ -7,7 +7,7 @@ export default class Message extends BaseEntity {
   @PrimaryGeneratedColumn()
   id!: number;
 
-  @Column()
+  @Column({ name: 'gmail_id' })
   gmailId!: string;
 
   @Column('jsonb')
