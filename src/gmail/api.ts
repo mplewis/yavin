@@ -1,4 +1,4 @@
-import { GmailClient, Thread, Message } from './types';
+import { GmailClient, Thread, Message } from '../types';
 
 /**
  * Get the first page of threads from the currently signed-in user's inbox.
