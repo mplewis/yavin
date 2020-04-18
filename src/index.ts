@@ -1,17 +1,13 @@
 import 'reflect-metadata';
 import { createConnection } from 'typeorm';
-// import Message from './entities/message';
-import { getMessage, listMessages } from './gmail_api';
 import createClient from './auth';
 import Message from './entities/message';
 import { SNU } from './types';
+import { keepTruthy } from './util';
+import { getMessage, listMessages } from './gmail_api';
 
 // If modifying these scopes, delete token.json.
 const SCOPES = ['https://www.googleapis.com/auth/gmail.modify'];
-
-function keepTruthy<T>(items: (T | null | undefined)[]): T[] {
-  return items.filter(Boolean) as T[];
-}
 
 async function shouldSaveMessage(messageId: SNU): Promise<boolean> {
   if (!messageId) return false;

@@ -1,4 +1,6 @@
-import { encode, decode, headerPairsToHash } from './util';
+import {
+  encode, decode, headerPairsToHash, keepTruthy,
+} from './util';
 
 describe('encode', () => {
   const input = 'You spent the first five years trying to get with the plan';
@@ -27,5 +29,13 @@ describe('headerPairsToHash', () => {
       occupation: 'Kourier',
       legal_status: 'Wanted',
     });
+  });
+});
+
+describe('keepTruthy', () => {
+  it('only keeps truthy items', () => {
+    const input: (string | null | undefined)[] = ['a', null, 'b', undefined, 'c'];
+    const result: string[] = keepTruthy(input);
+    expect(result).toEqual(['a', 'b', 'c']);
   });
 });

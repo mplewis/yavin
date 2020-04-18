@@ -36,3 +36,11 @@ export function headerPairsToHash(pairs: Pair[]): Hash {
   });
   return hash;
 }
+
+/**
+ * Filter items, keeping only the truthy ones.
+ * @param items The items to filter
+ */
+export function keepTruthy<T>(items: (T | null | undefined)[]): T[] {
+  return items.filter(Boolean) as T[];
+}
