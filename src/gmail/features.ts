@@ -14,6 +14,19 @@ async function shouldSaveMessage(messageId: SNU): Promise<boolean> {
 }
 
 /**
+ * Check a list of sparse messages and return only the ones that do not yet exist in the database.
+ * @param sparseMessages The sparse messages to check
+ */
+async function omitKnownMessages(sparseMessages: GmailMessage[]): Promise<GmailMessage[]> {
+  return keepTruthy(
+    await Promise.all(
+      sparseMessages.map(async (message) => (
+        (await shouldSaveMessage(message.id)) ? message : null)),
+    ),
+  );
+}
+
+/**
  * Hydrate sparse messages from the Gmail server.
  *
  * Gmail's list messages endpoint returns sparse messages, not items with data.
@@ -63,20 +76,10 @@ async function persistAll(messages: GmailMessage[]): Promise<number> {
 export async function persistUnseenMessages(
   client: GmailClient,
 ): Promise<{ listed: number; saved: number }> {
-  // Sparse messages have message ID and thread ID, nothing else
   const allSparseMessages = await listMessages(client);
   const listed = allSparseMessages.length;
-
-  // TODO: This looks incredibly messy
-  const sparseMessagesToRetrieve = keepTruthy(
-    await Promise.all(
-      allSparseMessages.map(async (message) => (
-        (await shouldSaveMessage(message.id)) ? message : null)),
-    ),
-  );
-
+  const sparseMessagesToRetrieve = await omitKnownMessages(allSparseMessages);
   const hydrated = await hydrateAll(client, sparseMessagesToRetrieve);
   const saved = await persistAll(hydrated);
-
   return { listed, saved };
 }
