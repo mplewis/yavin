@@ -1,23 +1,33 @@
 import { getMessage, listMessages } from './api';
-import { GmailClient, SNU, Message as GmailMessage } from '../types';
+import { GmailClient, Message as GmailMessage } from '../types';
 import Message from '../entities/message';
 import { keepTruthy } from '../util';
+
+/** Simply a GmailMessage with a guaranteed present ID. */
+interface SparseMessage extends GmailMessage { id: string }
+
+/**
+ * Cast a Gmail Message into SparseMessage. Used for ergonomics.
+ * @param sparseMessage The message to be cast
+ */
+function castToSparse(sparseMessage: GmailMessage): SparseMessage {
+  if (!sparseMessage.id) throw new Error('message lacks id');
+  return { ...sparseMessage, id: sparseMessage.id };
+}
 
 /**
  * True if the message has an ID and is not in the DB; false otherwise
  * @param messageId The Gmail ID of the message to be checked
  */
-async function shouldSaveMessage(messageId: SNU): Promise<boolean> {
-  if (!messageId) return false;
-  const existing = await Message.findOne({ gmailId: messageId });
-  return !existing;
+async function shouldSaveMessage(messageId: string): Promise<boolean> {
+  return !(await Message.findOne({ gmailId: messageId }));
 }
 
 /**
  * Check a list of sparse messages and return only the ones that do not yet exist in the database.
  * @param sparseMessages The sparse messages to check
  */
-async function omitKnownMessages(sparseMessages: GmailMessage[]): Promise<GmailMessage[]> {
+async function omitKnownMessages(sparseMessages: SparseMessage[]): Promise<SparseMessage[]> {
   return keepTruthy(
     await Promise.all(
       sparseMessages.map(async (message) => (
@@ -37,7 +47,7 @@ async function omitKnownMessages(sparseMessages: GmailMessage[]): Promise<GmailM
  * @param sparseMessages The sparse messages to hydrate
  */
 async function hydrateAll(
-  client: GmailClient, sparseMessages: GmailMessage[],
+  client: GmailClient, sparseMessages: SparseMessage[],
 ): Promise<GmailMessage[]> {
   return Promise.all(
     sparseMessages.map(({ id }) => {
@@ -76,7 +86,7 @@ async function persistAll(messages: GmailMessage[]): Promise<number> {
 export async function persistUnseenMessages(
   client: GmailClient,
 ): Promise<{ listed: number; saved: number }> {
-  const allSparseMessages = await listMessages(client);
+  const allSparseMessages = (await listMessages(client)).map((m) => castToSparse(m));
   const listed = allSparseMessages.length;
   const sparseMessagesToRetrieve = await omitKnownMessages(allSparseMessages);
   const hydrated = await hydrateAll(client, sparseMessagesToRetrieve);
