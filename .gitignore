@@ -11,3 +11,4 @@ package-lock.json
 secrets
 
 src/sandbox.ts
+ormconfig.json
