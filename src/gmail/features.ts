@@ -27,7 +27,7 @@ export async function shouldSaveMessage(messageId: string): Promise<boolean> {
  * Check a list of sparse messages and return only the ones that do not yet exist in the database.
  * @param sparseMessages The sparse messages to check
  */
-async function omitKnownMessages(sparseMessages: SparseMessage[]): Promise<SparseMessage[]> {
+export async function omitKnownMessages(sparseMessages: SparseMessage[]): Promise<SparseMessage[]> {
   return keepTruthy(
     await Promise.all(
       sparseMessages.map(async (message) => (

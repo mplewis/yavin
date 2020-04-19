@@ -1,5 +1,7 @@
 import { Connection, createConnection } from 'typeorm';
-import { SparseMessage, castToSparse, shouldSaveMessage } from './features';
+import {
+  SparseMessage, castToSparse, shouldSaveMessage, omitKnownMessages,
+} from './features';
 import { Message as GmailMessage } from '../types';
 import Message from '../entities/message';
 
@@ -44,6 +46,18 @@ describe('message db tests', () => {
       expect(await shouldSaveMessage('known2')).toBeFalsy();
       expect(await shouldSaveMessage('unknown1')).toBeTruthy();
       expect(await shouldSaveMessage('unknown2')).toBeTruthy();
+    });
+  });
+
+  describe('omitKnownMessages', () => {
+    beforeEach(async () => {
+      await insertMessagesWithIds('known1', 'known2');
+    });
+
+    it('omits messages that have already been persisted', async () => {
+      const input: SparseMessage[] = [
+        { id: 'known1' }, { id: 'known2' }, { id: 'unknown1' }, { id: 'unknown2' }];
+      expect(await omitKnownMessages(input)).toEqual([{ id: 'unknown1' }, { id: 'unknown2' }]);
     });
   });
 });
