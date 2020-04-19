@@ -4,13 +4,13 @@ import Message from '../entities/message';
 import { keepTruthy } from '../util';
 
 /** Simply a GmailMessage with a guaranteed present ID. */
-interface SparseMessage extends GmailMessage { id: string }
+export interface SparseMessage extends GmailMessage { id: string }
 
 /**
  * Cast a Gmail Message into SparseMessage. Used for ergonomics.
  * @param sparseMessage The message to be cast
  */
-function castToSparse(sparseMessage: GmailMessage): SparseMessage {
+export function castToSparse(sparseMessage: GmailMessage): SparseMessage {
   if (!sparseMessage.id) throw new Error('message lacks id');
   return { ...sparseMessage, id: sparseMessage.id };
 }
