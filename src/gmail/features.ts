@@ -19,7 +19,7 @@ export function castToSparse(sparseMessage: GmailMessage): SparseMessage {
  * True if the message has an ID and is not in the DB; false otherwise
  * @param messageId The Gmail ID of the message to be checked
  */
-async function shouldSaveMessage(messageId: string): Promise<boolean> {
+export async function shouldSaveMessage(messageId: string): Promise<boolean> {
   return !(await Message.findOne({ gmailId: messageId }));
 }
 
