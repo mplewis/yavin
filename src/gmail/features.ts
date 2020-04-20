@@ -61,7 +61,7 @@ export async function hydrateAll(
  * Save Gmail messages to the database and return the number of successful saves.
  * @param messages The messages to be saved to the database
  */
-async function persistAll(messages: GmailMessage[]): Promise<number> {
+export async function persistAll(messages: GmailMessage[]): Promise<number> {
   const saves = messages.map(async (message) => {
     const row = new Message();
     if (!message.id) throw new Error('message lacks id');

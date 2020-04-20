@@ -1,6 +1,6 @@
 import { Connection, createConnection } from 'typeorm';
 import {
-  SparseMessage, castToSparse, shouldSaveMessage, omitKnownMessages, hydrateAll,
+  SparseMessage, castToSparse, shouldSaveMessage, omitKnownMessages, hydrateAll, persistAll,
 } from './features';
 import { Message as GmailMessage, GmailClient } from '../types';
 import Message from '../entities/message';
@@ -73,6 +73,25 @@ describe('message db tests', () => {
         { id: '2', raw: 'hydrated_gmail_message' },
         { id: '3', raw: 'hydrated_gmail_message' },
       ]);
+    });
+  });
+
+  describe('persistAll', () => {
+    it('persists messages to the DB as expected and returns saved row count', async () => {
+      const input: GmailMessage[] = [
+        { id: '1', raw: 'hydrated_gmail_message' },
+        { id: '2', raw: 'hydrated_gmail_message' },
+        { id: '3', raw: 'hydrated_gmail_message' },
+      ];
+      const result = await persistAll(input);
+      expect(result).toEqual(3);
+      expect(await Message.count()).toEqual(3);
+      expect(await Message.findOne({ gmailId: '1' }))
+        .toMatchObject({ gmailId: '1', data: { id: '1', raw: 'hydrated_gmail_message' } });
+      expect(await Message.findOne({ gmailId: '2' }))
+        .toMatchObject({ gmailId: '2', data: { id: '2', raw: 'hydrated_gmail_message' } });
+      expect(await Message.findOne({ gmailId: '3' }))
+        .toMatchObject({ gmailId: '3', data: { id: '3', raw: 'hydrated_gmail_message' } });
     });
   });
 });
