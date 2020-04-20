@@ -6,6 +6,7 @@ Scan your email for treachery
 
 - [x] Set up a database
 - [x] Ingest emails into the DB idempotently
+- [ ] Get tests working in CI with DB
 - [ ] OAuth with Express server backend
 - [ ] Create Vue frontend
 - [ ] Serve compiled frontend from backend
