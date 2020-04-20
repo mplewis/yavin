@@ -9,6 +9,5 @@ export async function listMessages(_client: GmailClient): Promise<Message[]> {
 }
 
 export async function getMessage(_client: GmailClient, id: string): Promise<Message> {
-  const message: Message = { id, raw: 'hydrated_gmail_message' };
-  return Promise.resolve(message);
+  return { id, raw: 'hydrated_gmail_message' };
 }
