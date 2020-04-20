@@ -1,6 +1,12 @@
 import { Connection, createConnection } from 'typeorm';
 import {
-  SparseMessage, castToSparse, shouldSaveMessage, omitKnownMessages, hydrateAll, persistAll,
+  SparseMessage,
+  castToSparse,
+  shouldSaveMessage,
+  omitKnownMessages,
+  hydrateAll,
+  persistAll,
+  persistUnseenMessages,
 } from './features';
 import { Message as GmailMessage, GmailClient } from '../types';
 import Message from '../entities/message';
@@ -27,7 +33,7 @@ describe('message db tests', () => {
   beforeAll(async () => { conn = await createConnection(); });
   afterAll(async () => { await conn.close(); });
 
-  beforeEach(() => { Message.clear(); });
+  afterEach(async () => { await Message.clear(); });
 
   async function insertMessagesWithIds(...ids: string[]): Promise<void> {
     await Promise.all(ids.map((id) => {
@@ -90,6 +96,26 @@ describe('message db tests', () => {
         .toMatchObject({ gmailId: '1', data: { id: '1', raw: 'hydrated_gmail_message' } });
       expect(await Message.findOne({ gmailId: '2' }))
         .toMatchObject({ gmailId: '2', data: { id: '2', raw: 'hydrated_gmail_message' } });
+      expect(await Message.findOne({ gmailId: '3' }))
+        .toMatchObject({ gmailId: '3', data: { id: '3', raw: 'hydrated_gmail_message' } });
+    });
+  });
+
+  describe('persistUnseenMessages', () => {
+    beforeEach(async () => {
+      const message = new Message();
+      message.gmailId = '2';
+      message.data = {};
+      return message.save();
+    });
+
+    it('persists messages that do not yet exist in the database', async () => {
+      const fakeClient = null as unknown as GmailClient;
+      const result = await persistUnseenMessages(fakeClient);
+      expect(result).toEqual({ listed: 3, saved: 2 });
+      expect(await Message.count()).toEqual(3);
+      expect(await Message.findOne({ gmailId: '1' }))
+        .toMatchObject({ gmailId: '1', data: { id: '1', raw: 'hydrated_gmail_message' } });
       expect(await Message.findOne({ gmailId: '3' }))
         .toMatchObject({ gmailId: '3', data: { id: '3', raw: 'hydrated_gmail_message' } });
     });
