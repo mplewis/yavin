@@ -1,9 +1,11 @@
 import { Connection, createConnection } from 'typeorm';
 import {
-  SparseMessage, castToSparse, shouldSaveMessage, omitKnownMessages,
+  SparseMessage, castToSparse, shouldSaveMessage, omitKnownMessages, hydrateAll,
 } from './features';
-import { Message as GmailMessage } from '../types';
+import { Message as GmailMessage, GmailClient } from '../types';
 import Message from '../entities/message';
+
+jest.mock('./api');
 
 describe('castToSparse', () => {
   it('casts messages with ids to SparseMessages', () => {
@@ -58,6 +60,19 @@ describe('message db tests', () => {
       const input: SparseMessage[] = [
         { id: 'known1' }, { id: 'known2' }, { id: 'unknown1' }, { id: 'unknown2' }];
       expect(await omitKnownMessages(input)).toEqual([{ id: 'unknown1' }, { id: 'unknown2' }]);
+    });
+  });
+
+  describe('hydrateAll', () => {
+    it('hydrates the specified messages', async () => {
+      const fakeClient = null as unknown as GmailClient;
+      const input: SparseMessage[] = [{ id: '1' }, { id: '2' }, { id: '3' }];
+      const result = await hydrateAll(fakeClient, input);
+      expect(result).toEqual([
+        { id: '1', raw: 'hydrated_gmail_message' },
+        { id: '2', raw: 'hydrated_gmail_message' },
+        { id: '3', raw: 'hydrated_gmail_message' },
+      ]);
     });
   });
 });

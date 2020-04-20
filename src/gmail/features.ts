@@ -46,7 +46,7 @@ export async function omitKnownMessages(sparseMessages: SparseMessage[]): Promis
  *
  * @param sparseMessages The sparse messages to hydrate
  */
-async function hydrateAll(
+export async function hydrateAll(
   client: GmailClient, sparseMessages: SparseMessage[],
 ): Promise<GmailMessage[]> {
   return Promise.all(
