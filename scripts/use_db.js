@@ -9,7 +9,7 @@ const VALID_ENVS_MSG = `Valid envs: ${VALID_ENVS.join(', ')}`;
 
 const ORMCONFIG_TEMPLATE = {
   type: 'postgres',
-  // host: 'localhost',
+  host: 'localhost',
   port: 5432,
   username: 'postgres',
   password: '',
@@ -33,19 +33,13 @@ function quit(msg) {
   process.exit(1);
 }
 
-function selectHost(env) {
-  // In CI, we use `postgres` as the linked Docker Compose host
-  return env === 'test' && process.env.CI ? 'postgres' : 'localhost';
-}
-
 function selectDatabase(env) {
   return `yavin_${env}`;
 }
 
 function buildOrmconfig(env) {
-  const host = selectHost(env);
   const database = selectDatabase(env);
-  const ormconfig = { ...ORMCONFIG_TEMPLATE, host, database };
+  const ormconfig = { ...ORMCONFIG_TEMPLATE, database };
   return JSON.stringify(ormconfig, null, 2);
 }
 
@@ -57,7 +51,7 @@ function wipeTestDatabase(env) {
   }
 
   const client = new Client({
-    host: selectHost(env),
+    host: 'localhost',
     port: 5432,
     user: 'postgres',
     password: '',

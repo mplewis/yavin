@@ -4,6 +4,10 @@ jobs:
   'node-12':
     docker:
       - image: circleci/node:12
+      - image: circleci/postgres:12.2
+        environment:
+          POSTGRES_USER: postgres
+          POSTGRES_DB: yavin_test
     steps:
       - checkout
       # Download and cache dependencies
