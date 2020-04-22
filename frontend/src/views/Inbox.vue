@@ -15,7 +15,11 @@
         </b-navbar>
     </b-row>
     <b-row>
-      <b-col cols="4">summaries</b-col>
+      <b-col cols="4">
+        <Summary />
+        <Summary />
+        <Summary />
+      </b-col>
       <b-col cols="8">details</b-col>
     </b-row>
   </b-container>
@@ -24,10 +28,12 @@
 <script lang="ts">
 import Vue from 'vue';
 import Component from 'vue-class-component';
+import Summary from '../components/Summary.vue';
 
-@Component
+@Component({
+  components: { Summary },
+})
 export default class Inbox extends Vue {
-  message = 'Hello, user!'
 }
 </script>
 
