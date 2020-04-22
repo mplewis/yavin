@@ -8,7 +8,9 @@ Scan your email for treachery
 - [x] Ingest emails into the DB idempotently
 - [x] Get tests working in CI with DB
 - [ ] OAuth with Express server backend
-- [ ] Create Vue frontend
+- [x] Create Vue frontend
+- [ ] Pass data props to Vue components
+- [ ] Use live data in Vue frontend
 - [ ] Serve compiled frontend from backend
 - [ ] Classify emails in DB
 - [ ] Move emails from inbox to Yavin suspicious tag
