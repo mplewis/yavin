@@ -8,6 +8,7 @@ jobs:
         environment:
           POSTGRES_USER: postgres
           POSTGRES_DB: yavin_test
+          POSTGRES_HOST_AUTH_METHOD: trust # passwordless
     steps:
       - checkout
       # Download and cache dependencies
