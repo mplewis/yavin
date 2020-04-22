@@ -20,7 +20,9 @@
         <Summary />
         <Summary />
       </b-col>
-      <b-col cols="8">details</b-col>
+      <b-col cols="8">
+        <Details />
+      </b-col>
     </b-row>
   </b-container>
 </template>
@@ -29,9 +31,10 @@
 import Vue from 'vue';
 import Component from 'vue-class-component';
 import Summary from '../components/Summary.vue';
+import Details from '../components/Details.vue';
 
 @Component({
-  components: { Summary },
+  components: { Summary, Details },
 })
 export default class Inbox extends Vue {
 }
