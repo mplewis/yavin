@@ -9,7 +9,7 @@ Scan your email for treachery
 - [x] Get tests working in CI with DB
 - [ ] OAuth with Express server backend
 - [x] Create Vue frontend
-- [ ] Pass data props to Vue components
+- [x] Pass data props to Vue components
 - [ ] Use live data in Vue frontend
 - [ ] Serve compiled frontend from backend
 - [ ] Classify emails in DB
