@@ -1,7 +1,7 @@
 import 'reflect-metadata';
 import { createConnection } from 'typeorm';
 import createClient from './auth';
-import { persistUnseenMessages } from './gmail/features';
+import persist from './workers/persist';
 
 // If modifying these scopes, delete token.json.
 const SCOPES = ['https://www.googleapis.com/auth/gmail.modify'];

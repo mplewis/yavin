@@ -1,17 +1,16 @@
 import { Connection, createConnection } from 'typeorm';
-import {
+import persist, {
   SparseMessage,
   castToSparse,
   shouldSaveMessage,
   omitKnownMessages,
   hydrateAll,
   persistAll,
-  persistUnseenMessages,
-} from './features';
+} from './persist';
 import { Message as GmailMessage, GmailClient } from '../types';
 import Message from '../entities/message';
 
-jest.mock('./api');
+jest.mock('../gmail/api');
 
 describe('castToSparse', () => {
   it('casts messages with ids to SparseMessages', () => {
@@ -101,7 +100,7 @@ describe('message db tests', () => {
     });
   });
 
-  describe('persistUnseenMessages', () => {
+  describe('persist', () => {
     beforeEach(async () => {
       const message = new Message();
       message.gmailId = '2';
@@ -111,7 +110,7 @@ describe('message db tests', () => {
 
     it('persists messages that do not yet exist in the database', async () => {
       const fakeClient = null as unknown as GmailClient;
-      const result = await persistUnseenMessages(fakeClient);
+      const result = await persist(fakeClient);
       expect(result).toEqual({ listed: 3, saved: 2 });
       expect(await Message.count()).toEqual(3);
       expect(await Message.findOne({ gmailId: '1' }))

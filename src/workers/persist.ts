@@ -1,4 +1,4 @@
-import { getMessage, listMessages } from './api';
+import { getMessage, listMessages } from '../gmail/api';
 import { GmailClient, Message as GmailMessage } from '../types';
 import Message from '../entities/message';
 import { keepTruthy } from '../util';
@@ -83,7 +83,7 @@ export async function persistAll(messages: GmailMessage[]): Promise<number> {
  *
  * @param client The Gmail client to be used to access the user's inbox
  */
-export async function persistUnseenMessages(
+export default async function persist(
   client: GmailClient,
 ): Promise<{ listed: number; saved: number }> {
   const allSparseMessages = (await listMessages(client)).map((m) => castToSparse(m));
