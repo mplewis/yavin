@@ -16,9 +16,9 @@
     </b-row>
     <b-row>
       <b-col cols="4">
-        <Summary />
-        <Summary />
-        <Summary />
+        <Summary :brief="details" />
+        <Summary :brief="details" />
+        <Summary :brief="details" />
       </b-col>
       <b-col cols="8">
         <Details :details="details" />

@@ -1,27 +1,27 @@
 <template>
   <div class="card">
-    <p class="line">From: {{from}}</p>
-    <p class="line">Subject: {{subject}}</p>
-    <span class="tag" v-for="(tag, i) in tags" :key="i">
-      {{tag}}
-    </span>
+    <p class="line">From: {{brief.from}}</p>
+    <p class="line">Subject: {{brief.subject}}</p>
+    <div>
+      <span class="tag" v-for="(tag, i) in brief.tags" :key="i">
+        {{tag}}
+      </span>
+    </div>
   </div>
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
-import Component from 'vue-class-component';
+import { Vue, Component, Prop } from 'vue-property-decorator';
+
+interface SummaryProps {
+  from: string;
+  subject: string;
+  tags: string[];
+}
 
 @Component
 export default class Summary extends Vue {
-  from = 'spammer@scamsite.xyz'
-
-  subject = 'FREE corona 4 u'
-
-  tags = [
-    'virus',
-    'scarewords',
-  ]
+  @Prop() brief!: SummaryProps;
 }
 </script>
 
