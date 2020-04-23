@@ -5,6 +5,10 @@ import { StrNum } from './types';
 type List = { name: string; words: string[]; phrases: string[] }
 type Hits = StrNum
 type Tags = string[]
+/**
+ * The values for each key in the keywords file.
+ */
+type KeywordDetails = { description: string; keywords: string[] }
 
 /**
  * Count instances of unique strings.
@@ -73,12 +77,12 @@ function wordOrPhrase(item: string): 'word' | 'phrase' {
  * Parse the keywords YAML into Lists.
  */
 export function parseKeywordLists(rawYaml: string): List[] {
-  const rawObj: { [name: string]: string[] } = yaml.safeLoad(rawYaml);
+  const rawObj: { [name: string]: KeywordDetails } = yaml.safeLoad(rawYaml);
   const lists: List[] = [];
-  Object.entries(rawObj).forEach(([name, items]) => {
+  Object.entries(rawObj).forEach(([name, details]) => {
     const words: string[] = [];
     const phrases: string[] = [];
-    items.forEach((rawItem) => {
+    details.keywords.forEach((rawItem) => {
       const lowered = rawItem.toLowerCase();
       if (wordOrPhrase(lowered) === 'phrase') {
         phrases.push(lowered);

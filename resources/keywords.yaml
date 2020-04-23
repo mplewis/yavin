@@ -1,64 +1,92 @@
 covid19:
-  - covid
-  - covid19
-  - covid-19
-  - coronavirus
-  - corona-virus
+  description: >
+    These words are associated with the COVID-19 Coronavirus. The sender may be trying to lower
+    your guard by taking advantage of your natural anxieties around this outbreak.
+  keywords:
+    - covid
+    - covid19
+    - covid-19
+    - coronavirus
+    - corona-virus
 
 agency:
-  - WHO
-  - World Health Organization
-  - CDC
-  - Disease Control
-  - Small Business Administration
-  - SBA
-  - United Nations
-  - United Nation
-  - UN
+  # TODO: Need to set threshold for this to one occurrence
+  description: >
+    These words are associated with public agencies, including health agencies such as the WHO or
+    CDC. The sender may be trying to legitimize their message by associating with an organization
+    you know and trust, even if they do not work with this organization.
+  keywords:
+    - World Health Organization
+    - CDC
+    - Disease Control
+    - Small Business Administration
+    - United Nations
+    - United Nation
 
 places:
-  - Japan
-  - Wuhan
-  - China
-  - Italy
-  - South Korea
+  description: >
+    These words are associated with places commonly discussed in conjunction with COVID-19.
+    The sender may be trying to legitimize their message by linking it to recent news you've read
+    about these places.
+  keywords:
+    - Japan
+    - Wuhan
+    - China
+    - Italy
+    - South Korea
 
 illness:
-  - coughing
-  - throat
-  - pneumonia
-  - fever
-  - chills
-  - treatment
-  - vaccine
-  - infected
-  - soap
-  - alcohol
+  description: >
+    These words are associated with illness. The sender may be trying to lower your guard by
+    scaring you with the severity of an illness or outbreak.
+  keywords:
+    - coughing
+    - throat
+    - pneumonia
+    - fever
+    - chills
+    - treatment
+    - vaccine
+    - infected
+    - soap
+    - alcohol
 
 politics:
-  - trump
-  - administration
-  - relief
+  description: >
+    These words are associated with American politics. The sender may be trying to legitimize
+    their message by associating with an authority or government program you already know about.
+  keywords:
+    - trump
+    - administration
+    - relief
 
 scare_words:
-  - emergency
-  - outbreak
-  - safe
-  - confidential
-  - isolate
-  - effective
-  - killing
-  - ultraviolet
-  - UV
-  - hospital
-  - ventilator
+  description: >
+    These words are "scare words" (e.g. emergency, outbreak, ventilator). The sender may be trying
+    to lower your guard by overplaying the importance or severity of their message.
+  keywords:
+    - emergency
+    - outbreak
+    - safe
+    - confidential
+    - isolate
+    - effective
+    - killing
+    - ultraviolet
+    - UV
+    - hospital
+    - ventilator
 
 sales:
-  - market
-  - opportunity
-  - competition
-  - selling
-  - sales
-  - amazon
-  - profit
-  - client
+  description: >
+    These words relate to marketing, sales, or business. The sender may be offering you a
+    multi-level marketing scheme that is too good to be true.
+  keywords:
+    - market
+    - opportunity
+    - competition
+    - selling
+    - sales
+    - amazon
+    - profit
+    - client

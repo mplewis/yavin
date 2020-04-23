@@ -1,21 +1,27 @@
 theft:
-  # words
-  - IP
-  - espionage
-  # phrase
-  - Intellectual Property
+  description: These suggest someone is stealing something.
+  keywords:
+    # words
+    - IP
+    - espionage
+    # phrase
+    - Intellectual Property
 
 fraud:
-  # words
-  - pyramid
-  - Ponzi
-  - loophole
-  # phrase
-  - contract law
+  description: These suggest someone is committing some kind of fraud.
+  keywords:
+    # words
+    - pyramid
+    - Ponzi
+    - loophole
+    # phrase
+    - contract law
 
 conspiracy:
-  # words
-  - alliance
-  - agreement
-  # phrase
-  - under the table
+  description: These suggest two or more people are conspirators.
+  keywords:
+    # words
+    - alliance
+    - agreement
+    # phrase
+    - under the table
