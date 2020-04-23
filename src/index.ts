@@ -3,18 +3,31 @@ import express, { Express } from 'express';
 import { createConnection } from 'typeorm';
 import Message from './entities/message';
 import { Message as GmailMessage } from './types';
+import { extractPlaintextContent } from './message';
 
 const DEFAULT_PORT = 9999;
 
-async function emails(): Promise<GmailMessage[]> {
-  const messages = await Message.find();
-  return messages.map((m) => m.data);
+interface EmailResponse {
+  id: number;
+  gmailId: string;
+  body?: string;
+  data: GmailMessage;
+}
+
+function convertMessage(message: Message): EmailResponse {
+  const { id, gmailId, data } = message;
+  const body = extractPlaintextContent(data);
+  return {
+    id, gmailId, data, body,
+  };
 }
 
 function createApp(): Express {
   const app = express();
   app.get('/emails', async (_req, res) => {
-    res.json(await emails());
+    const messages = await Message.find();
+    const emails = messages.map((m) => convertMessage(m));
+    res.json(emails);
   });
   return app;
 }
