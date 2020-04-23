@@ -1,17 +1,29 @@
 import 'reflect-metadata';
+import express, { Express } from 'express';
 import { createConnection } from 'typeorm';
-import createClient from './auth';
-import persist from './workers/persist';
+import Message from './entities/message';
+import { Message as GmailMessage } from './types';
 
-// If modifying these scopes, delete token.json.
-const SCOPES = ['https://www.googleapis.com/auth/gmail.modify'];
+const DEFAULT_PORT = 9999;
+
+async function emails(): Promise<GmailMessage[]> {
+  const messages = await Message.find();
+  return messages.map((m) => m.data);
+}
+
+function createApp(): Express {
+  const app = express();
+  app.get('/emails', async (_req, res) => {
+    res.json(await emails());
+  });
+  return app;
+}
 
 async function main(): Promise<void> {
-  const conn = await createConnection();
-  const client = await createClient(SCOPES);
-  const results = await persistUnseenMessages(client);
-  console.log(results);
-  await conn.close();
+  const port = process.env.PORT || DEFAULT_PORT;
+  await createConnection();
+  const app = createApp();
+  app.listen(port, () => { console.log(`Serving on http://localhost:${port}`); });
 }
 
 main();
