@@ -1,10 +1,10 @@
 <template>
-  <div class="card">
-    <p class="line">From: {{brief.from}}</p>
-    <p class="line">Subject: {{brief.subject}}</p>
+  <div :class="{ card: true, selected }" @click="$emit('click')">
+    <p class="line">From: {{ brief.from }}</p>
+    <p class="line">Subject: {{ brief.subject }}</p>
     <div>
       <span class="tag" v-for="(tag, i) in brief.tags" :key="i">
-        {{tag}}
+        {{ tag }}
       </span>
     </div>
   </div>
@@ -21,19 +21,32 @@ interface SummaryProps {
 
 @Component
 export default class Summary extends Vue {
-  @Prop() brief!: SummaryProps;
+  @Prop() readonly brief!: SummaryProps;
+
+  @Prop() readonly selected!: boolean;
 }
 </script>
 
 <style lang="stylus" scoped>
+light-grey = rgba(0, 0, 0, 0.1)
+dark-grey = rgba(0, 0, 0, 0.04)
+dark-blue = #2980b9 // Flat UI Colors: Belize Hole
+
 .card
   display: block
   padding: 8px
   margin-bottom: 8px
   border: none
-  background: rgba(0, 0, 0, 0.04)
+  background: dark-grey
   &:hover
-    background: rgba(0, 0, 0, 0.1)
+    background: light-grey
+  cursor: pointer
+
+.selected
+  background: dark-blue
+  color: white
+  &:hover
+    background: dark-blue
 
 .line
   margin-bottom: 0px
