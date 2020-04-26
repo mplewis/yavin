@@ -1,4 +1,5 @@
 import { Connection, createConnection } from 'typeorm';
+import { readFile } from 'fs-extra';
 import persist, {
   SparseMessage,
   castToSparse,
@@ -32,7 +33,16 @@ describe('message db tests', () => {
   beforeAll(async () => { conn = await createConnection(); });
   afterAll(async () => { await conn.close(); });
 
-  afterEach(async () => { await Message.clear(); });
+  afterEach(async () => {
+    // HACK: This is a really jank way to ensure that VSCode's Jest runner doesn't nuke the current
+    // DB when you're running a dev server alongside your editor
+    const ormconfig = JSON.parse(await readFile('./ormconfig.json'));
+    const { database }: { database: string } = ormconfig;
+    if (!database.endsWith('_test')) {
+      throw new Error(`Cowardly refusing to clear non-test DB ${database}`);
+    }
+    await Message.clear();
+  });
 
   async function insertMessagesWithIds(...ids: string[]): Promise<void> {
     await Promise.all(ids.map((id) => {
