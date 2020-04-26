@@ -1,6 +1,7 @@
 import {
   Entity, PrimaryGeneratedColumn, Column, BaseEntity,
 } from 'typeorm';
+import { Message as GmailMessage } from '../types';
 
 @Entity()
 export default class Message extends BaseEntity {
@@ -11,5 +12,5 @@ export default class Message extends BaseEntity {
   gmailId!: string;
 
   @Column('jsonb')
-  data!: object;
+  data!: GmailMessage;
 }
