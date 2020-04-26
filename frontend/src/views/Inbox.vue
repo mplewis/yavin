@@ -16,11 +16,20 @@
     </b-row>
     <b-row v-if="messages">
       <b-col cols="4">
-        <b-row v-for="(message, i) in messages" :key="i">
+        <b-row class="paginator">
+          <b-col>
+            <button @click="prevPage" :disabled="!canPrevPage">&laquo;</button
+            ><span class="status"
+              >{{ pageStart + 1 }} to {{ pageEnd }} of
+              {{ messages.length }}</span
+            ><button @click="nextPage" :disabled="!canNextPage">&raquo;</button>
+          </b-col>
+        </b-row>
+        <b-row v-for="(message, i) in pagedMessages" :key="i">
           <b-col>
             <Summary
               :brief="message"
-              :selected="i === currMessageIndex"
+              :selected="i + pageStart === currMessageIndex"
               @click="show(i)"
             />
           </b-col>
@@ -47,7 +56,14 @@ import { EmailResponse } from '../types';
 import Summary from '../components/Summary.vue';
 import Details from '../components/Details.vue';
 
+/**
+ * Number of times to retry getting emails
+ */
 const MAX_ATTEMPTS = 3;
+/**
+ * Number of email summaries to show per page
+ */
+const PAGE_SIZE = 8;
 
 async function getEmails(attempt = 1): Promise<EmailResponse[]> {
   if (attempt > MAX_ATTEMPTS) throw new Error('Could not load emails');
@@ -72,20 +88,82 @@ export default class Inbox extends Vue {
 
   currMessageIndex: number | null = null;
 
+  page = 0;
+
+  get pages(): number {
+    if (!this.messages) return 0;
+    return Math.ceil(this.messages.length / PAGE_SIZE);
+  }
+
+  get pageStart(): number {
+    return PAGE_SIZE * this.page;
+  }
+
+  get pageEnd(): number {
+    return Math.min(PAGE_SIZE * (this.page + 1), this.messages.length);
+  }
+
+  get pagedMessages(): EmailResponse[] {
+    if (!this.messages) return [];
+    return this.messages.slice(this.pageStart, this.pageEnd);
+  }
+
+  get canPrevPage(): boolean {
+    return this.page > 0;
+  }
+
+  get canNextPage(): boolean {
+    return this.page < this.pages - 1;
+  }
+
   async mounted(): Promise<void> {
     this.messages = await getEmails();
   }
 
   show(i: number): void {
     if (!this.messages) return;
-    this.currMessageIndex = i;
-    this.message = this.messages[i];
+    console.log({ i, ps: this.pageStart });
+    this.currMessageIndex = i + this.pageStart;
+    this.message = this.messages[this.currMessageIndex];
+  }
+
+  nextPage(): void {
+    if (!this.canNextPage) return;
+    this.page += 1;
+  }
+
+  prevPage(): void {
+    if (!this.canPrevPage) return;
+    this.page -= 1;
   }
 }
 </script>
 
 <style lang="stylus">
-nav {
-  width: 100%;
-}
+bright-blue = #3498db // Flat UI Colors: Peter River
+dark-blue = #2980b9 // Flat UI Colors: Belize Hole
+
+nav
+  width: 100%
+
+.paginator
+  text-align: center
+  margin-bottom: 8px
+  .status
+    display: inline-block
+    min-width: 120px
+    margin-left: 8px
+    margin-right: 8px
+  button
+    border: none
+    border-radius: 4px
+    color: white
+    font-weight: 800
+    padding: 3px 10px
+    background: bright-blue
+    &:hover
+      background: dark-blue
+    &:disabled
+      color: rgba(0, 0, 0, 0.2)
+      background-color: rgba(0, 0, 0, 0.1)
 </style>
