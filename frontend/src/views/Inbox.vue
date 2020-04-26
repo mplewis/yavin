@@ -18,12 +18,17 @@
       <b-col cols="4">
         <b-row v-for="(message, i) in messages" :key="i">
           <b-col>
-            <Summary :brief="message" />
+            <Summary
+              :brief="message"
+              :selected="i === currMessageIndex"
+              @click="show(i)"
+            />
           </b-col>
         </b-row>
       </b-col>
       <b-col cols="8">
-        <Details :details="messages[0]" />
+        <Details v-if="message" :details="message" />
+        <p v-else>Select a message to view.</p>
       </b-col>
     </b-row>
     <b-row v-else>
@@ -42,16 +47,39 @@ import { EmailResponse } from '../types';
 import Summary from '../components/Summary.vue';
 import Details from '../components/Details.vue';
 
+const MAX_ATTEMPTS = 3;
+
+async function getEmails(attempt = 1): Promise<EmailResponse[]> {
+  if (attempt > MAX_ATTEMPTS) throw new Error('Could not load emails');
+  try {
+    const resp = await fetch('//localhost:9999/emails');
+    const ms: EmailResponse[] = await resp.json();
+    return ms;
+  } catch (e) {
+    console.warn(`getEmails: attempt ${attempt} failed, retrying`);
+    console.warn(e);
+    return getEmails(attempt + 1);
+  }
+}
+
 @Component({
   components: { Summary, Details }
 })
 export default class Inbox extends Vue {
   messages: EmailResponse[] | null = null;
 
+  message: EmailResponse | null = null;
+
+  currMessageIndex: number | null = null;
+
   async mounted(): Promise<void> {
-    const resp = await fetch('//localhost:9999/emails');
-    const ms: EmailResponse[] = await resp.json();
-    this.messages = ms;
+    this.messages = await getEmails();
+  }
+
+  show(i: number): void {
+    if (!this.messages) return;
+    this.currMessageIndex = i;
+    this.message = this.messages[i];
   }
 }
 </script>
