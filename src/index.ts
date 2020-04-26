@@ -1,4 +1,5 @@
 import 'reflect-metadata';
+import cors from 'cors';
 import express, { Express } from 'express';
 import { createConnection } from 'typeorm';
 import Message from './entities/message';
@@ -13,6 +14,7 @@ interface EmailResponse {
   body?: string;
   data: GmailMessage;
 }
+const ORIGIN = 'http://localhost:8080'; // HACK: This only works with the Vue dev server for now
 
 function convertMessage(message: Message): EmailResponse {
   const { id, gmailId, data } = message;
@@ -24,6 +26,7 @@ function convertMessage(message: Message): EmailResponse {
 
 function createApp(): Express {
   const app = express();
+  app.use(cors({ origin: ORIGIN }));
   app.get('/emails', async (_req, res) => {
     const messages = await Message.find();
     const emails = messages.map((m) => convertMessage(m));
