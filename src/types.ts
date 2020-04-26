@@ -10,3 +10,17 @@ export type Thread = GmailV1.Schema$Thread
 export type Message = GmailV1.Schema$Message
 export type MessagePart = GmailV1.Schema$MessagePart
 export type MessagePartBody = GmailV1.Schema$MessagePartBody
+
+/**
+ * Returned from the "GET /emails" endpoint.
+ */
+export interface EmailResponse {
+  id: number;
+  gmailId: string;
+  tags: string[];
+  suspicion: number;
+  from: string;
+  subject: string;
+  body?: string;
+  data: Message;
+}
