@@ -49,6 +49,9 @@ export default class Details extends Vue {
 </script>
 
 <style lang="stylus" scoped>
+*
+  overflow-wrap: break-word
+
 h1
   font-size: 30px
 
