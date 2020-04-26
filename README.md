@@ -10,7 +10,7 @@ Scan your email for treachery
 - [ ] OAuth with Express server backend
 - [x] Create Vue frontend
 - [x] Pass data props to Vue components
-- [ ] Use live data in Vue frontend
+- [x] Use live data in Vue frontend
 - [ ] Serve compiled frontend from backend
 - [ ] Classify emails in DB
 - [ ] Move emails from inbox to Yavin suspicious tag

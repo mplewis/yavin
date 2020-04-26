@@ -14,22 +14,31 @@
         </b-collapse>
       </b-navbar>
     </b-row>
-    <b-row>
+    <b-row v-if="messages">
       <b-col cols="4">
-        <Summary :brief="details" />
-        <Summary :brief="details" />
-        <Summary :brief="details" />
+        <b-row v-for="(message, i) in messages" :key="i">
+          <b-col>
+            <Summary :brief="message" />
+          </b-col>
+        </b-row>
       </b-col>
       <b-col cols="8">
-        <Details :details="details" />
+        <Details :details="messages[0]" />
+      </b-col>
+    </b-row>
+    <b-row v-else>
+      <b-col>
+        <h1>Loading...</h1>
       </b-col>
     </b-row>
   </b-container>
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
-import Component from 'vue-class-component';
+// HACK: Vue can't find the window.fetch type
+import { fetch } from 'whatwg-fetch';
+import { Vue, Component } from 'vue-property-decorator';
+import { EmailResponse } from '../types';
 import Summary from '../components/Summary.vue';
 import Details from '../components/Details.vue';
 
@@ -37,18 +46,18 @@ import Details from '../components/Details.vue';
   components: { Summary, Details }
 })
 export default class Inbox extends Vue {
-  details = {
-    from: 'scammer@spamsite.xyz',
-    subject: 'FREE corona 4 u',
-    tags: ['virus', 'scarewords'],
-    suspicion: 0.201,
-    body: 'this is a fake email body!'
-  };
+  messages: EmailResponse[] | null = null;
+
+  async mounted(): Promise<void> {
+    const resp = await fetch('//localhost:9999/emails');
+    const ms: EmailResponse[] = await resp.json();
+    this.messages = ms;
+  }
 }
 </script>
 
 <style lang="stylus">
 nav {
-  width: 100%
+  width: 100%;
 }
 </style>
