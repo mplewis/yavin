@@ -1,6 +1,6 @@
 import simplify from './simplify';
 import { Message } from './types';
-import { encode } from './util';
+import { encode } from './lib/util';
 
 describe('simplify', () => {
   it('simplifies a message by extracting its content', () => {

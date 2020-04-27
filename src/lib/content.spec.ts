@@ -2,7 +2,7 @@ import {
   selectPart, extractContent, extractPlaintextContent, contentTypeFor, categorize,
 } from './content';
 import { MessagePart, Message } from '../types';
-import { encode as e } from '../util';
+import { encode as e } from './util';
 
 describe('contentTypeFor', () => {
   it('converts as expected', () => {

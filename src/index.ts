@@ -5,7 +5,7 @@ import { createConnection } from 'typeorm';
 import Message from './entities/message';
 import { extractPlaintextContent } from './lib/content';
 import { EmailResponse } from './types';
-import { headerPairsToHash } from './util';
+import { headerPairsToHash } from './lib/util';
 
 const DEFAULT_PORT = 9999;
 const ORIGIN = 'http://localhost:8080'; // HACK: This only works with the Vue dev server for now

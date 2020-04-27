@@ -1,7 +1,7 @@
 import { getMessage, listMessages } from '../gmail/api';
 import { GmailClient, Message as GmailMessage } from '../types';
 import Message from '../entities/message';
-import { keepTruthy } from '../util';
+import { keepTruthy } from '../lib/util';
 
 /** Simply a GmailMessage with a guaranteed present ID. */
 export interface SparseMessage extends GmailMessage { id: string }
