@@ -1,6 +1,6 @@
 import striptags from 'striptags';
-import { MessagePart, Message, SNU } from './types';
-import { decode } from './util';
+import { MessagePart, Message, SNU } from '../types';
+import { decode } from '../util';
 
 type Content = { kind: ContentType; body: string }
 type ContentType = 'plaintext' | 'html' | 'unknown'

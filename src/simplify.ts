@@ -1,5 +1,5 @@
 import { Message, StrStr } from './types';
-import { extractPlaintextContent } from './message';
+import { extractPlaintextContent } from './lib/message';
 import { headerPairsToHash } from './util';
 
 type SimpleMessage = {
