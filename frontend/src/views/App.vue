@@ -5,6 +5,10 @@
 </template>
 
 <style lang="stylus">
+html {
+  overflow-y: scroll
+}
+
 #app {
   font-family: Helvetica, Arial, sans-serif;
 }
