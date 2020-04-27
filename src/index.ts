@@ -3,7 +3,7 @@ import cors from 'cors';
 import express, { Express } from 'express';
 import { createConnection } from 'typeorm';
 import Message from './entities/message';
-import { extractPlaintextContent } from './lib/message';
+import { extractPlaintextContent } from './lib/content';
 import { EmailResponse } from './types';
 import { headerPairsToHash } from './util';
 

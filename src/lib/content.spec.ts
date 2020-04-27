@@ -1,6 +1,6 @@
 import {
   selectPart, extractContent, extractPlaintextContent, contentTypeFor, categorize,
-} from './message';
+} from './content';
 import { MessagePart, Message } from '../types';
 import { encode as e } from '../util';
 
