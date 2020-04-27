@@ -122,7 +122,6 @@ export default class Inbox extends Vue {
 
   show(i: number): void {
     if (!this.messages) return;
-    console.log({ i, ps: this.pageStart });
     this.currMessageIndex = i + this.pageStart;
     this.message = this.messages[this.currMessageIndex];
   }
