@@ -1,7 +1,8 @@
 <template>
   <div :class="{ card: true, selected }" @click="$emit('click')">
-    <p class="line">From: {{ brief.from }}</p>
-    <p class="line">Subject: {{ brief.subject }}</p>
+    <p class="name">{{ name }}</p>
+    <p class="email">{{ email }}</p>
+    <p class="subject">{{ brief.subject }}</p>
     <div>
       <span class="tag" v-for="(tag, i) in brief.tags" :key="i">
         {{ tag }}
@@ -19,11 +20,25 @@ interface SummaryProps {
   tags: string[];
 }
 
+function extract(emailAndOrName: string): { email: string; name?: string } {
+  const match = emailAndOrName.match(/^(.+) <(.+)>$/);
+  if (!match) return { email: emailAndOrName };
+  return { email: match[2], name: match[1] };
+}
+
 @Component
 export default class Summary extends Vue {
   @Prop() readonly brief!: SummaryProps;
 
   @Prop() readonly selected!: boolean;
+
+  get name(): string | undefined {
+    return extract(this.brief.from).name;
+  }
+
+  get email(): string {
+    return extract(this.brief.from).email;
+  }
 }
 </script>
 
@@ -48,8 +63,17 @@ dark-blue = #2980b9 // Flat UI Colors: Belize Hole
   &:hover
     background: dark-blue
 
-.line
+p
   margin-bottom: 0px
+
+.name
+  font-weight: 700
+
+.name, .email
+  font-size: 12px
+
+.subject
+  font-size: 14px
 
 .tag
   display: inline-block
