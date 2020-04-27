@@ -1,6 +1,6 @@
 import stemmer from 'wink-porter2-stemmer';
 import yaml from 'js-yaml';
-import { StrNum } from './types';
+import { StrNum } from '../types';
 
 type List = { name: string; words: string[]; phrases: string[] }
 type Hits = StrNum

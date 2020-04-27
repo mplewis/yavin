@@ -15,7 +15,7 @@ import {
   tag,
   relativeFrequency,
 } from './classify';
-import { StrNum } from './types';
+import { StrNum } from '../types';
 
 describe('stem', () => {
   it('calls the stemmer', () => {
