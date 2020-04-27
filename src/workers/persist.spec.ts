@@ -36,7 +36,7 @@ describe('message db tests', () => {
   afterEach(async () => {
     // HACK: This is a really jank way to ensure that VSCode's Jest runner doesn't nuke the current
     // DB when you're running a dev server alongside your editor
-    const ormconfig = JSON.parse(await readFile('./ormconfig.json'));
+    const ormconfig = JSON.parse((await readFile('./ormconfig.json')).toString());
     const { database }: { database: string } = ormconfig;
     if (!database.endsWith('_test')) {
       throw new Error(`Cowardly refusing to clear non-test DB ${database}`);
