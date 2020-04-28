@@ -2,13 +2,15 @@ import stemmer from 'wink-porter2-stemmer';
 import yaml from 'js-yaml';
 import { StrNum } from '../types';
 
-type List = { name: string; words: string[]; phrases: string[] }
-type Hits = StrNum
+type List = { name: string; threshold: number; words: string[]; phrases: string[] }
+type Hits = { 'hits': StrNum }
+type HitPercentages = { 'hitPercentages': StrNum }
+
 type Tags = string[]
 /**
  * The values for each key in the keywords file.
  */
-type KeywordDetails = { description: string; keywords: string[] }
+type KeywordDetails = { threshold: number; description: string; keywords: string[] }
 
 /**
  * Count instances of unique strings.
@@ -80,6 +82,7 @@ export function parseKeywordLists(rawYaml: string): List[] {
   const rawObj: { [name: string]: KeywordDetails } = yaml.safeLoad(rawYaml);
   const lists: List[] = [];
   Object.entries(rawObj).forEach(([name, details]) => {
+    const { threshold } = details;
     const words: string[] = [];
     const phrases: string[] = [];
     details.keywords.forEach((rawItem) => {
@@ -90,7 +93,9 @@ export function parseKeywordLists(rawYaml: string): List[] {
       }
       words.push(stem(lowered));
     });
-    lists.push({ name, words, phrases });
+    lists.push({
+      name, threshold, words, phrases,
+    });
   });
   return lists;
 }
@@ -102,12 +107,12 @@ export function parseKeywordLists(rawYaml: string): List[] {
  * @param lists The lists to search for matching keywords
  */
 export function analyzeWords(body: string, lists: List[]): Hits {
-  const results: StrNum = {};
+  const hits: StrNum = {};
   const bodyWordCount = stemAndCount(body);
   lists.forEach(({ name, words }) => {
-    results[name] = words.reduce((total, word) => total + (bodyWordCount[word] || 0), 0);
+    hits[name] = words.reduce((total, word) => total + (bodyWordCount[word] || 0), 0);
   });
-  return results;
+  return { hits };
 }
 
 /**
@@ -117,25 +122,25 @@ export function analyzeWords(body: string, lists: List[]): Hits {
  * @param lists The lists to search for matching keywords
  */
 export function analyzePhrases(body: string, lists: List[]): Hits {
-  const results: StrNum = {};
+  const hits: StrNum = {};
   lists.forEach(({ name, phrases }) => {
     phrases.forEach((phrase) => {
       const matcher = new RegExp(phrase, 'gi');
-      const hits = (body.match(matcher) || []).length;
-      results[name] = hits;
+      hits[name] = (body.match(matcher) || []).length;
     });
   });
-  return results;
+  return { hits };
 }
 
 /**
- * Sum the counts from two or more Hits results.
+ * Sum the counts from two or more Hits results and convert to (hit count) / (body word count)
+ * percentage.
  * @param objects The string-number hashes to combine
  */
-function combineCounts(...hits: Hits[]): StrNum {
+function combineCounts(...allHits: Hits[]): StrNum {
   const results: StrNum = {};
-  hits.forEach((hit) => {
-    Object.entries(hit).forEach(([name, count]) => {
+  allHits.forEach(({ hits }) => {
+    Object.entries(hits).forEach(([name, count]) => {
       results[name] = (results[name] || 0) + count;
     });
   });
@@ -143,43 +148,35 @@ function combineCounts(...hits: Hits[]): StrNum {
 }
 
 /**
- * Analyze a document and return the number of hits from each keyword list.
+ * Analyze a document and return the (hit count) / (body word count) percentage
+ * for each keyword list.
  * @param body The body of the document to be analyzed
  * @param lists The lists to search for matching keywords
  */
-export function analyze(body: string, lists: List[]): Hits {
+export function analyze(body: string, lists: List[]): HitPercentages {
   const wordHits = analyzeWords(body, lists);
   const phraseHits = analyzePhrases(body, lists);
-  return combineCounts(wordHits, phraseHits);
-}
-
-/**
- * Tag a document based on the relative frequency of occurring words from keyword lists.
- * @param body The text to analyze
- * @param lists The lists to search for matching keywords
- */
-export function relativeFrequency(body: string, lists: List[]): StrNum {
-  const hits = analyze(body, lists);
-  const wordCount = extractWords(body).length;
-  const result: StrNum = {};
-  Object.entries(hits).forEach(([name, count]) => {
-    result[name] = (count === 0) ? 0 : count / wordCount;
+  const combinedCounts = combineCounts(wordHits, phraseHits);
+  const totalWordsInBody = extractWords(body).length;
+  const hitPercentages: StrNum = {};
+  Object.entries(combinedCounts).forEach(([listName, count]) => {
+    hitPercentages[listName] = count / totalWordsInBody;
   });
-  return result;
+  return { hitPercentages };
 }
 
 /**
- * Tag a document based on the relative frequency of occurring words from keyword lists.
- * @param body The text to analyze
- * @param lists The lists to search for matching keywords
- * @param threshold A fractional percentage (`0 < n < 1`).
- *                  If `category_hits / word_count >= threshold`, the tag is applied.
- */
-export function tag(body: string, lists: List[], threshold: number): Tags {
-  const hits = analyze(body, lists);
+   * Tag a document based on the relative frequency of occurring words from keyword lists.
+   * @param body The text to analyze
+   * @param lists The lists to search for matching keywords
+   * @param threshold A fractional percentage (`0 < n < 1`).
+   *                  If `category_hits / word_count >= threshold`, the tag is applied.
+   */
+export function tag(body: string, lists: List[]): Tags {
+  const { hitPercentages } = analyze(body, lists);
   const wordCount = extractWords(body).length;
-  return Object.entries(hits)
-    .filter(([, hitsCount]) => {
+  return Object.entries(hitPercentages)
+    .filter(([name, hitsCount]) => {
       if (!hitsCount) return false;
       return (hitsCount / wordCount) >= threshold;
     })

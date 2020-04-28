@@ -13,4 +13,10 @@ export default class Message extends BaseEntity {
 
   @Column('jsonb')
   data!: GmailMessage;
+
+  @Column('timestamptz', { name: 'tagged_at', nullable: true })
+  taggedAt?: Date;
+
+  @Column('jsonb', { nullable: true })
+  tags?: string[];
 }
