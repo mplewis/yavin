@@ -12,7 +12,7 @@ Scan your email for treachery
 - [x] Pass data props to Vue components
 - [x] Use live data in Vue frontend
 - [ ] Serve compiled frontend from backend
-- [ ] Classify emails in DB
+- [x] Classify emails in DB
 - [ ] Move emails from inbox to Yavin suspicious tag
 - [ ] Tell user why emails are marked suspicious
 - [ ] Classification: Bad SPF
