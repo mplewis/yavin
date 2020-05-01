@@ -1,5 +1,6 @@
 theft:
   description: These suggest someone is stealing something.
+  threshold: 0.1
   keywords:
     # words
     - IP
@@ -9,6 +10,7 @@ theft:
 
 fraud:
   description: These suggest someone is committing some kind of fraud.
+  threshold: 0.1
   keywords:
     # words
     - pyramid
@@ -19,6 +21,7 @@ fraud:
 
 conspiracy:
   description: These suggest two or more people are conspirators.
+  threshold: 0.1
   keywords:
     # words
     - alliance
