@@ -140,42 +140,25 @@ export function evaluateListPhrases(bodyWc: BodyWithWordCounts, list: List): num
  * @param bodyWc The body with word counts to analyze
  * @param list The list to search for matching phrases
  */
-export function evaluateList(bodyWc: BodyWithWordCounts, list: List): number {
-  return evaluateListWords(bodyWc, list) + evaluateListPhrases(bodyWc, list);
+export function evaluateList(
+  bodyWc: BodyWithWordCounts, list: List,
+): { hits: number; frequency: number } {
+  const hits = evaluateListWords(bodyWc, list) + evaluateListPhrases(bodyWc, list);
+  const frequency = hits / bodyWc.words.length;
+  return { hits, frequency };
 }
 
-// /**
-//  * Analyze a document and return the (hit count) / (body word count) percentage
-//  * for each keyword list.
-//  * @param body The body of the document to be analyzed
-//  * @param lists The lists to search for matching keywords
-//  */
-// export function analyze(body: string, lists: List[]): HitPercentages {
-//   const wordHits = analyzeWords(body, lists);
-//   const phraseHits = analyzePhrases(body, lists);
-//   const combinedCounts = combineCounts(wordHits, phraseHits);
-//   const totalWordsInBody = extractWords(body).length;
-//   const hitPercentages: StrNum = {};
-//   Object.entries(combinedCounts).forEach(([listName, count]) => {
-//     hitPercentages[listName] = count / totalWordsInBody;
-//   });
-//   return { hitPercentages };
-// }
-
-// /**
-//    * Tag a document based on the relative frequency of occurring words from keyword lists.
-//    * @param body The text to analyze
-//    * @param lists The lists to search for matching keywords
-//    * @param threshold A fractional percentage (`0 < n < 1`).
-//    *                  If `category_hits / word_count >= threshold`, the tag is applied.
-//    */
-// export function tag(body: string, lists: List[]): Tags {
-//   const { hitPercentages } = analyze(body, lists);
-//   const wordCount = extractWords(body).length;
-//   return Object.entries(hitPercentages)
-//     .filter(([name, hitsCount]) => {
-//       if (!hitsCount) return false;
-//       return (hitsCount / wordCount) >= threshold;
-//     })
-//     .map(([name]) => name);
-// }
+/**
+   * Tag a document based on the relative frequency of occurring words from keyword lists.
+   * @param body The body to analyze
+   * @param lists The lists to search for matching keywords
+   * @param threshold A fractional percentage (`0 < n < 1`).
+   *                  If `category_hits / word_count >= threshold`, the tag is applied.
+   */
+export function tag(body: string, lists: List[]): string[] {
+  const bodyWc = analyzeBody(body);
+  return lists.filter((list) => {
+    const { frequency } = evaluateList(bodyWc, list);
+    return frequency >= list.threshold;
+  }).map((list) => list.name);
+}
