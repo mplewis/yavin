@@ -1,8 +1,11 @@
+// HACK: Don't know how to configure this project to use the typedef .d.ts file for stemmer
+import '../types/wink-porter2-stemmer';
 import stemmer from 'wink-porter2-stemmer';
 import yaml from 'js-yaml';
 import { StrNum } from '../types';
 
-type List = { name: string; threshold: number; words: string[]; phrases: string[] }
+/** A list of keywords to be used for analyzing and tagging an email. */
+export type List = { name: string; threshold: number; words: string[]; phrases: string[] }
 type BodyWithWordCounts = {
   body: string;
   words: string[];
