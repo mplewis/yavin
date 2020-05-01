@@ -118,20 +118,21 @@ export function evaluateListWords(bodyWc: BodyWithWordCounts, list: List): numbe
   return words.reduce((total, word) => total + (wordCounts[word] || 0), 0);
 }
 
-// /**
-//  * Analyze the words in a document and return the number of hits in each list.
-//  * Keywords occurring multiple times are counted multiple times.
-//  * @param bodyWords The body of the document to be analyzed
-//  * @param lists The lists to search for matching keywords
-//  */
-// export function analyzeWords(body: string, lists: List[]): Hits {
-//   const hits: StrNum = {};
-//   const bodyWordCount = stemAndCount(body);
-//   lists.forEach(({ name, words }) => {
-//     hits[name] = words.reduce((total, word) => total + (bodyWordCount[word] || 0), 0);
-//   });
-//   return { hits };
-// }
+/**
+ * Analyze the phrases in a document and return the number of hits for a given list.
+ * Phrases occurring multiple times are counted multiple times.
+ * @param bodyWords The body of the document to be analyzed
+ * @param list The list to search for matching keywords
+ */
+export function evaluateListPhrases(bodyWc: BodyWithWordCounts, list: List): number {
+  const { body } = bodyWc;
+  const { phrases } = list;
+  return phrases.reduce((total, phrase) => {
+    const matcher = new RegExp(phrase, 'gi');
+    const hits = (body.match(matcher) || []).length;
+    return total + hits;
+  }, 0);
+}
 
 // /**
 //  * Analyze the phrases in a document and return the number of hits in each list.

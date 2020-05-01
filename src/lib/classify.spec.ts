@@ -10,7 +10,7 @@ import {
   analyzeBody,
   parseKeywordLists,
   evaluateListWords,
-  // analyzePhrases,
+  evaluateListPhrases,
   // analyze,
   // tag,
   // relativeFrequency,
@@ -177,6 +177,20 @@ describe('with a document and keyword list', () => {
           "conspiracy": 2,
           "fraud": 0,
           "theft": 3,
+        }
+      `);
+    });
+  });
+
+  describe('evaluateListPhrases', () => {
+    it('analyzes a document for phrase hits', () => {
+      const results: { [name: string]: number } = {};
+      keywordLists.forEach((list) => { results[list.name] = evaluateListPhrases(bodyWc, list); });
+      expect(results).toMatchInlineSnapshot(`
+        Object {
+          "conspiracy": 1,
+          "fraud": 0,
+          "theft": 2,
         }
       `);
     });
