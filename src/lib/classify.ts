@@ -5,6 +5,7 @@ import { StrNum } from '../types';
 type List = { name: string; threshold: number; words: string[]; phrases: string[] }
 type BodyWithWordCounts = {
   body: string;
+  words: string[];
   wordCounts: { [word: string]: number };
 }
 
@@ -65,10 +66,10 @@ export function extractWords(text: string): string[] {
  * @param body The text to analyze
  */
 export function analyzeBody(body: string): BodyWithWordCounts {
-  const words = extractWords(body);
-  const stemmed = words.map((w) => stem(w));
-  const wordCounts = countUniqueStrings(stemmed);
-  return { body, wordCounts };
+  const unstemmed = extractWords(body);
+  const words = unstemmed.map((w) => stem(w)).filter((w) => w.length > 0);
+  const wordCounts = countUniqueStrings(words);
+  return { body, words, wordCounts };
 }
 
 /**
@@ -106,18 +107,14 @@ export function parseKeywordLists(rawYaml: string): List[] {
 }
 
 // /**
-//  * Analyze the words in a document and return the number of hits in each list.
+//  * Analyze the words in a document and return the number of hits for a given list.
 //  * Keywords occurring multiple times are counted multiple times.
 //  * @param bodyWords The body of the document to be analyzed
-//  * @param lists The lists to search for matching keywords
+//  * @param list The list to search for matching keywords
 //  */
-// export function analyzeWords(body: string, lists: List[]): Hits {
-//   const hits: StrNum = {};
-//   const bodyWordCount = stemAndCount(body);
-//   lists.forEach(({ name, words }) => {
-//     hits[name] = words.reduce((total, word) => total + (bodyWordCount[word] || 0), 0);
-//   });
-//   return { hits };
+// export function evaluateListWords(bodyWc: BodyWithWordCounts, list: List): number {
+//   const { wordCounts } = bodyWc;
+//   return words.reduce((total, word) => total + (bodyWordCount[word] || 0), 0);
 // }
 
 // /**

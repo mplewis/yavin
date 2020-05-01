@@ -35,8 +35,7 @@ describe('trimPunc', () => {
 
 describe('extractWords', () => {
   it('extracts words properly', async () => {
-    const text =
-      "He'd made the classic mistake, the one he'd sworn he'd never make.";
+    const text = "He'd made the classic mistake, the one he'd sworn he'd never make.";
     expect(extractWords(text)).toEqual([
       "he'd",
       'made',
@@ -59,8 +58,23 @@ describe('analyzeBody', () => {
     const text = (
       await readFile(join('fixtures', 'text', 'neuromancer.txt'))
     ).toString();
-    const { body, wordCounts } = analyzeBody(text);
+    const { body, words, wordCounts } = analyzeBody(text);
     expect(body).toEqual(text);
+
+    const expectedWords = `
+      he'd made the classic mistak the one he'd sworn he'd never make he stole from his employ he
+      kept someth for himself and tri to move it through a fenc in amsterdam he still wasn't sure
+      how he'd been discov not that it matter now he'd expect to die then but they onli smile of
+      cours he was welcom they told him welcom to the money and he was go to need it becaus
+      still smile they were go to make sure he never work again they damag his nervous system with a
+      wartim russian mycotoxin strap to a bed in a memphi hotel his talent burn out micron by micron
+      he hallucin for thirti hour the damag was minut subtl and utter effect for case who'd live for
+      the bodiless exult of cyber space it was the fall in the bar he'd frequent as a cowboy hotshot
+      the elit stanc involv a certain relax contempt for the flesh the bodi was meat case fell into
+      the prison of his own flesh
+    `.trim().split(/\s+/g);
+    expect(words).toEqual(expectedWords);
+
     const twoOrMore: StrNum = {};
     Object.entries(wordCounts)
       .filter(([, count]) => count >= 2)
