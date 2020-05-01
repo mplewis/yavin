@@ -81,6 +81,7 @@ function wordOrPhrase(item: string): 'word' | 'phrase' {
 
 /**
  * Parse the keywords YAML into Lists.
+ * @param rawYaml The raw YAML from a keywords file
  */
 export function parseKeywordLists(rawYaml: string): List[] {
   const rawObj: { [name: string]: KeywordDetails } = yaml.safeLoad(rawYaml);
