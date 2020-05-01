@@ -106,16 +106,17 @@ export function parseKeywordLists(rawYaml: string): List[] {
   return lists;
 }
 
-// /**
-//  * Analyze the words in a document and return the number of hits for a given list.
-//  * Keywords occurring multiple times are counted multiple times.
-//  * @param bodyWords The body of the document to be analyzed
-//  * @param list The list to search for matching keywords
-//  */
-// export function evaluateListWords(bodyWc: BodyWithWordCounts, list: List): number {
-//   const { wordCounts } = bodyWc;
-//   return words.reduce((total, word) => total + (bodyWordCount[word] || 0), 0);
-// }
+/**
+ * Analyze the words in a document and return the number of hits for a given list.
+ * Keywords occurring multiple times are counted multiple times.
+ * @param bodyWords The body of the document to be analyzed
+ * @param list The list to search for matching keywords
+ */
+export function evaluateListWords(bodyWc: BodyWithWordCounts, list: List): number {
+  const { wordCounts } = bodyWc;
+  const { words } = list;
+  return words.reduce((total, word) => total + (wordCounts[word] || 0), 0);
+}
 
 // /**
 //  * Analyze the words in a document and return the number of hits in each list.

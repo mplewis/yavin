@@ -1,6 +1,5 @@
 import stemmer from 'wink-porter2-stemmer';
-// import { readFile, readFileSync } from 'fs-extra';
-import { readFile } from 'fs-extra';
+import { readFile, readFileSync } from 'fs-extra';
 import { join } from 'path';
 // import { safeLoad } from 'js-yaml';
 // import glob from 'glob';
@@ -10,7 +9,7 @@ import {
   stem,
   analyzeBody,
   parseKeywordLists,
-  // analyzeWords,
+  evaluateListWords,
   // analyzePhrases,
   // analyze,
   // tag,
@@ -158,27 +157,31 @@ describe('parseKeywordLists', () => {
   });
 });
 
-// describe('with a document and keyword list', () => {
-//   const rawYaml = readFileSync(join('fixtures', 'keywords.yaml')).toString();
-//   const keywordLists = parseKeywordLists(rawYaml);
-//   const body = `
-//     Hey, did you perform that espionage I asked you about?
-//     The boss is asking for all the IP you stole. He wants the intellectual property badly.
-//     Remember, this is part of our alliance's agreement. Keep this under the table.
-//     Do not discuss the intellectual property (IP).
-//   `;
+describe('with a document and keyword list', () => {
+  const rawYaml = readFileSync(join('fixtures', 'keywords.yaml')).toString();
+  const keywordLists = parseKeywordLists(rawYaml);
+  const body = `
+    Hey, did you perform that espionage I asked you about?
+    The boss is asking for all the IP you stole. He wants the intellectual property badly.
+    Remember, this is part of our alliance's agreement. Keep this under the table.
+    Do not discuss the intellectual property (IP).
+  `;
+  const bodyWc = analyzeBody(body);
 
-//   describe('analyzeWords', () => {
-//     it('analyzes a document for word hits', () => {
-//       expect(analyzeWords(body, keywordLists)).toMatchInlineSnapshot(`
-//         Object {
-//           "conspiracy": 2,
-//           "fraud": 0,
-//           "theft": 3,
-//         }
-//       `);
-//     });
-//   });
+  describe('evaluateListWords', () => {
+    it('analyzes a document for word hits', () => {
+      const results: { [name: string]: number } = {};
+      keywordLists.forEach((list) => { results[list.name] = evaluateListWords(bodyWc, list); });
+      expect(results).toMatchInlineSnapshot(`
+        Object {
+          "conspiracy": 2,
+          "fraud": 0,
+          "theft": 3,
+        }
+      `);
+    });
+  });
+});
 
 //   describe('analyzePhrases', () => {
 //     it('analyzes a document for phrase hits', () => {
