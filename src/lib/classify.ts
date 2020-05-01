@@ -109,8 +109,8 @@ export function parseKeywordLists(rawYaml: string): List[] {
 /**
  * Analyze the words in a document and return the number of hits for a given list.
  * Keywords occurring multiple times are counted multiple times.
- * @param bodyWords The body of the document to be analyzed
- * @param list The list to search for matching keywords
+ * @param bodyWc The body with word counts to analyze
+ * @param list The list to search for matching words
  */
 export function evaluateListWords(bodyWc: BodyWithWordCounts, list: List): number {
   const { wordCounts } = bodyWc;
@@ -121,8 +121,8 @@ export function evaluateListWords(bodyWc: BodyWithWordCounts, list: List): numbe
 /**
  * Analyze the phrases in a document and return the number of hits for a given list.
  * Phrases occurring multiple times are counted multiple times.
- * @param bodyWords The body of the document to be analyzed
- * @param list The list to search for matching keywords
+ * @param bodyWc The body with word counts to analyze
+ * @param list The list to search for matching phrases
  */
 export function evaluateListPhrases(bodyWc: BodyWithWordCounts, list: List): number {
   const { body } = bodyWc;
@@ -134,37 +134,15 @@ export function evaluateListPhrases(bodyWc: BodyWithWordCounts, list: List): num
   }, 0);
 }
 
-// /**
-//  * Analyze the phrases in a document and return the number of hits in each list.
-//  * Phrases occurring multiple times are counted multiple times.
-//  * @param body The body of the document to be analyzed
-//  * @param lists The lists to search for matching keywords
-//  */
-// export function analyzePhrases(body: string, lists: List[]): Hits {
-//   const hits: StrNum = {};
-//   lists.forEach(({ name, phrases }) => {
-//     phrases.forEach((phrase) => {
-//       const matcher = new RegExp(phrase, 'gi');
-//       hits[name] = (body.match(matcher) || []).length;
-//     });
-//   });
-//   return { hits };
-// }
-
-// /**
-//  * Sum the counts from two or more Hits results and convert to (hit count) / (body word count)
-//  * percentage.
-//  * @param objects The string-number hashes to combine
-//  */
-// function combineCounts(...allHits: Hits[]): StrNum {
-//   const results: StrNum = {};
-//   allHits.forEach(({ hits }) => {
-//     Object.entries(hits).forEach(([name, count]) => {
-//       results[name] = (results[name] || 0) + count;
-//     });
-//   });
-//   return results;
-// }
+/**
+ * Analyze the keywords in a document and return the number of hits for a given list.
+ * Keywords occurring multiple times are counted multiple times.
+ * @param bodyWc The body with word counts to analyze
+ * @param list The list to search for matching phrases
+ */
+export function evaluateList(bodyWc: BodyWithWordCounts, list: List): number {
+  return evaluateListWords(bodyWc, list) + evaluateListPhrases(bodyWc, list);
+}
 
 // /**
 //  * Analyze a document and return the (hit count) / (body word count) percentage

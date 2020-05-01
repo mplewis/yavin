@@ -11,6 +11,7 @@ import {
   parseKeywordLists,
   evaluateListWords,
   evaluateListPhrases,
+  evaluateList,
   // analyze,
   // tag,
   // relativeFrequency,
@@ -195,31 +196,21 @@ describe('with a document and keyword list', () => {
       `);
     });
   });
+
+  describe('evaluateList', () => {
+    it('analyzes a document for hits', () => {
+      const results: { [name: string]: number } = {};
+      keywordLists.forEach((list) => { results[list.name] = evaluateList(bodyWc, list); });
+      expect(results).toMatchInlineSnapshot(`
+        Object {
+          "conspiracy": 3,
+          "fraud": 0,
+          "theft": 5,
+        }
+      `);
+    });
+  });
 });
-
-//   describe('analyzePhrases', () => {
-//     it('analyzes a document for phrase hits', () => {
-//       expect(analyzePhrases(body, keywordLists)).toMatchInlineSnapshot(`
-//         Object {
-//           "conspiracy": 1,
-//           "fraud": 0,
-//           "theft": 2,
-//         }
-//       `);
-//     });
-//   });
-
-//   describe('analyze', () => {
-//     it('analyzes a document for keyword and phrase hits', () => {
-//       expect(analyze(body, keywordLists)).toMatchInlineSnapshot(`
-//         Object {
-//           "conspiracy": 3,
-//           "fraud": 0,
-//           "theft": 5,
-//         }
-//       `);
-//     });
-//   });
 
 //   describe('relativeFrequency', () => {
 //     it('returns the relative frequencies of hits in keyword lists', () => {
