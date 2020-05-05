@@ -6,9 +6,25 @@ import Message from './entities/message';
 import { extractPlaintextContent } from './lib/content';
 import { EmailResponse } from './types';
 import { headerPairsToHash } from './lib/util';
+import classify from './workers/classify';
+import persist from './workers/persist';
+import createClient from './auth';
 
 const DEFAULT_PORT = 9999;
 const ORIGIN = 'http://localhost:8080'; // HACK: This only works with the Vue dev server for now
+const WORKER_INTERVAL = 5 * 60 * 1000; // 5m
+const SCOPES = ['https://www.googleapis.com/auth/gmail.modify'];
+
+function work(name: string, task: () => any): void {
+  const once = async (): Promise<void> => {
+    console.log(`Task ${name} starting`);
+    const start = Date.now();
+    await task();
+    console.log(`Task ${name} complete. Duration: ${Date.now() - start} ms`);
+  };
+  once();
+  setInterval(once, WORKER_INTERVAL);
+}
 
 function convertMessage(message: Message): EmailResponse {
   const { id, gmailId, data } = message;
@@ -35,9 +51,16 @@ function createApp(): Express {
   return app;
 }
 
+async function startWorkers(): Promise<void> {
+  const client = await createClient(SCOPES);
+  work('persist', async () => { await persist(client); });
+  work('classify', async () => { await classify(); });
+}
+
 async function main(): Promise<void> {
   const port = process.env.PORT || DEFAULT_PORT;
   await createConnection();
+  startWorkers();
   const app = createApp();
   app.listen(port, () => { console.log(`Serving on http://localhost:${port}`); });
 }
