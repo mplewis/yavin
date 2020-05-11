@@ -14,8 +14,9 @@ describe('Summary', () => {
     });
     expect(wrapper.html()).toMatchInlineSnapshot(`
       <div class="card">
-        <p class="line">From: scammer@spamsite.xyz</p>
-        <p class="line">Subject: FREE corona 4 u</p>
+        <p class="name"></p>
+        <p class="email">scammer@spamsite.xyz</p>
+        <p class="subject">FREE corona 4 u</p>
         <div><span class="tag">
             virus
           </span><span class="tag">
