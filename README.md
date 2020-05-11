@@ -20,8 +20,8 @@ Scan your email for treachery
 - [ ] Write user guide in README
 - [ ] Send user daily summary email
 - [ ] Don't re-tag emails with a tagged date
-- [ ] Fix build
-- [ ] Make `yarn test` run frontend tests and linting too
+- [x] Fix build
+- [x] Make `yarn test` run frontend tests and linting too
 - [x] List TODOs command
 - [ ] Implement pagination in fetch emails
 - [ ] Fix files with pre-commit hook
