@@ -22,6 +22,9 @@ Scan your email for treachery
 - [ ] Don't re-tag emails with a tagged date
 - [ ] Fix build
 - [ ] Make `yarn test` run frontend tests and linting too
+- [x] List TODOs command
+- [ ] Implement pagination in fetch emails
+- [ ] Fix files with pre-commit hook
 
 # Stretch Goals
 
