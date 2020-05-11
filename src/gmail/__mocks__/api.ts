@@ -1,16 +1,19 @@
 import { GmailClient, Message } from '../../types';
 
-export async function listMessages(_client: GmailClient): Promise<Message[]> {
-  return [
-    { id: '1', threadId: '1' },
-    { id: '2', threadId: '2' },
-    { id: '3', threadId: '3' },
-  ];
+export async function listMessages(
+  _client: GmailClient,
+  _query: string,
+  pageToken?: string,
+): Promise<{ messages: Message[]; nextPageToken?: string }> {
+  if (!pageToken) return { messages: [{ id: '1', threadId: '1' }], nextPageToken: 'page_2' };
+  if (pageToken === 'page_2') return { messages: [{ id: '2', threadId: '2' }], nextPageToken: 'page_3' };
+  if (pageToken === 'page_3') return { messages: [{ id: '3', threadId: '3' }] };
+  throw new Error('Received an invalid page token in a test');
 }
 
 export async function getMessage(
   _client: GmailClient,
-  id: string
+  id: string,
 ): Promise<Message> {
   return { id, raw: 'hydrated_gmail_message' };
 }

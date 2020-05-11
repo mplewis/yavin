@@ -142,7 +142,7 @@ describe('message db tests', () => {
     it('persists messages that do not yet exist in the database', async () => {
       const fakeClient = (null as unknown) as GmailClient;
       const result = await persist(fakeClient);
-      expect(result).toEqual({ listed: 3, saved: 2 });
+      expect(result).toEqual({ pages: 3, listed: 3, saved: 2 });
       expect(await Message.count()).toEqual(3);
       expect(await Message.findOne({ gmailId: '1' })).toMatchObject({
         gmailId: '1',
