@@ -22,6 +22,7 @@ jobs:
       - save_cache:
           paths:
             - node_modules
+            - frontend/node_modules
           key: v1-dependencies-{{ checksum "package.json" }}-{{ checksum "frontend/package.json" }}
       - run: yarn test
       - store_test_results:
