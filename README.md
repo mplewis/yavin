@@ -11,10 +11,19 @@ Scan your email for treachery
 - [x] Create Vue frontend
 - [x] Pass data props to Vue components
 - [x] Use live data in Vue frontend
-- [ ] Serve compiled frontend from backend
 - [x] Classify emails in DB
+- [ ] Criteria for converting tags to suspicion
 - [ ] Move emails from inbox to Yavin suspicious tag
 - [ ] Tell user why emails are marked suspicious
+- [ ] Start both frontend and backend with `yarn start`
+- [ ] Write user guide in README
+- [ ] Send user daily summary email
+- [ ] Don't re-tag emails with a tagged date
+- [ ] Make `yarn test` run frontend tests and linting too
+
+# Stretch Goals
+
+- [ ] Serve compiled frontend from backend
 - [ ] Classification: Bad SPF
 - [ ] Classification: Bad DKIM
 - [ ] Classification: Domain reputation?
