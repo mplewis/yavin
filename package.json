@@ -17,7 +17,7 @@
     "fix:1_prettier": "prettier \"src/**/*.ts\" --write",
     "fix:2_eslint": "eslint --fix src/**/*.ts",
     "test": "run-s test:*",
-    "test:1_jest": "scripts/use_db.js test && jest --coverage",
+    "test:1_jest": "scripts/use_db.js test && jest --coverage --runInBand",
     "test:2_lint": "eslint src/**/*.ts",
     "test:watch": "scripts/use_db.js test && jest --watch",
     "doc": "run-s doc:html && open-cli build/docs/index.html",
