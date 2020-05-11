@@ -26,6 +26,8 @@
     "@typescript-eslint/camelcase": "off",
     "import/extensions": "off",
     "import/prefer-default-export": "off",
+    // TODO: Re-enable this for everything but `*.spec.ts` files
+    "import/no-extraneous-dependencies": "off",
     "no-console": "off",
     "no-multiple-empty-lines": ["error", { "max": 1 }],
     "no-unused-vars": "off",
