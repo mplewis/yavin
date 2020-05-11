@@ -3,6 +3,9 @@ import { GmailClient, Message as GmailMessage } from '../types';
 import Message from '../entities/message';
 import { keepTruthy } from '../lib/util';
 
+/** The Gmail search query to get messages in the user's inbox. */
+const IN_INBOX_QUERY = 'in:inbox';
+
 /** Simply a GmailMessage with a guaranteed present ID. */
 export interface SparseMessage extends GmailMessage {
   id: string;
@@ -86,17 +89,35 @@ export async function persistAll(messages: GmailMessage[]): Promise<number> {
  * (`messages.list`, which returns a list of sparse email IDs) and retrieved emails
  * (`messages.get`, unseen emails we retrieved and persisted in the database).
  *
- * TODO: This only handles the first page of messages (100). Implement pagination.
- *
  * @param client The Gmail client to be used to access the user's inbox
  */
 export default async function persist(
   client: GmailClient,
-): Promise<{ listed: number; saved: number }> {
-  const allSparseMessages = (await listMessages(client)).map((m) => castToSparse(m));
-  const listed = allSparseMessages.length;
-  const sparseMessagesToRetrieve = await omitKnownMessages(allSparseMessages);
-  const hydrated = await hydrateAll(client, sparseMessagesToRetrieve);
-  const saved = await persistAll(hydrated);
-  return { listed, saved };
+  query = IN_INBOX_QUERY,
+): Promise<{ listed: number; saved: number; pages: number }> {
+  let listed = 0;
+  let saved = 0;
+  let pages = 0;
+  let nextPageToken: string | undefined;
+
+  console.log(`Retrieving messages from Gmail using query ${query}`);
+
+  /* eslint-disable no-await-in-loop */
+  do {
+    pages += 1;
+    console.log(`Retrieving page ${pages}`);
+    const result = await listMessages(client, query, nextPageToken);
+    const { messages } = result;
+    nextPageToken = result.nextPageToken;
+
+    const allSparseMessages = messages.map((m) => castToSparse(m));
+    listed += allSparseMessages.length;
+
+    const sparseMessagesToRetrieve = await omitKnownMessages(allSparseMessages);
+    const hydrated = await hydrateAll(client, sparseMessagesToRetrieve);
+    saved += await persistAll(hydrated);
+  } while (nextPageToken);
+  /* eslint-enable no-await-in-loop */
+
+  return { listed, saved, pages };
 }

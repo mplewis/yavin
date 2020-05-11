@@ -23,7 +23,7 @@ Scan your email for treachery
 - [x] Fix build
 - [x] Make `yarn test` run frontend tests and linting too
 - [x] List TODOs command
-- [ ] Implement pagination in fetch emails
+- [x] Implement pagination in fetch emails
 - [x] Fix files with pre-commit hook
 
 # Stretch Goals
