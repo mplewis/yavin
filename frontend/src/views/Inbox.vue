@@ -79,7 +79,7 @@ async function getEmails(attempt = 1): Promise<EmailResponse[]> {
 }
 
 @Component({
-  components: { Summary, Details }
+  components: { Summary, Details },
 })
 export default class Inbox extends Vue {
   messages: EmailResponse[] | null = null;

@@ -36,7 +36,14 @@ function convertMessage(message: Message): EmailResponse {
   const body = extractPlaintextContent(data);
 
   return {
-    id, gmailId, data, body, from, subject, tags: ['fake-tag'], suspicion: 0.01,
+    id,
+    gmailId,
+    data,
+    body,
+    from,
+    subject,
+    tags: ['fake-tag'],
+    suspicion: 0.01,
   };
 }
 
@@ -53,8 +60,12 @@ function createApp(): Express {
 
 async function startWorkers(): Promise<void> {
   const client = await createClient(SCOPES);
-  work('persist', async () => { await persist(client); });
-  work('classify', async () => { await classify(); });
+  work('persist', async () => {
+    await persist(client);
+  });
+  work('classify', async () => {
+    await classify();
+  });
 }
 
 async function main(): Promise<void> {
@@ -62,7 +73,9 @@ async function main(): Promise<void> {
   await createConnection();
   startWorkers();
   const app = createApp();
-  app.listen(port, () => { console.log(`Serving on http://localhost:${port}`); });
+  app.listen(port, () => {
+    console.log(`Serving on http://localhost:${port}`);
+  });
 }
 
 main();

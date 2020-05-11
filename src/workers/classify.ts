@@ -40,9 +40,12 @@ async function classifyOne(message: Message, lists: List[]): Promise<void> {
  * successfully classified.
  */
 export default async function classify(lists?: List[]): Promise<number> {
-  const xLists = lists || await parseKeywordLists(RAW_KEYWORDS_YAML);
-  const toTag = await Message.find({ take: BATCH_SIZE, where: { taggedAt: null } });
+  const xLists = lists || (await parseKeywordLists(RAW_KEYWORDS_YAML));
+  const toTag = await Message.find({
+    take: BATCH_SIZE,
+    where: { taggedAt: null },
+  });
   if (toTag.length === 0) return 0;
   await Promise.all(toTag.map((message) => classifyOne(message, xLists)));
-  return toTag.length + await classify(lists);
+  return toTag.length + (await classify(lists));
 }

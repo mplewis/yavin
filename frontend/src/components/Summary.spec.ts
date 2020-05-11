@@ -8,9 +8,9 @@ describe('Summary', () => {
         brief: {
           from: 'scammer@spamsite.xyz',
           subject: 'FREE corona 4 u',
-          tags: ['virus', 'scarewords']
-        }
-      }
+          tags: ['virus', 'scarewords'],
+        },
+      },
     });
     expect(wrapper.html()).toMatchInlineSnapshot(`
       <div class="card">

@@ -20,7 +20,9 @@ const messageFixtures = [
   {
     gmailId: 'c',
     data: {
-      payload: { body: { data: encode('pyramid Ponzi loophole contract law') } },
+      payload: {
+        body: { data: encode('pyramid Ponzi loophole contract law') },
+      },
     },
   },
   // should be classified as "conspiracy"
@@ -33,24 +35,32 @@ const messageFixtures = [
 ];
 
 function createMessages(): Promise<Message[]> {
-  return Promise.all(messageFixtures.map(async ({ gmailId, data }) => {
-    const m = new Message();
-    m.gmailId = gmailId;
-    m.data = data;
-    await m.save();
-    return m;
-  }));
+  return Promise.all(
+    messageFixtures.map(async ({ gmailId, data }) => {
+      const m = new Message();
+      m.gmailId = gmailId;
+      m.data = data;
+      await m.save();
+      return m;
+    }),
+  );
 }
 
 describe('message db tests', () => {
   let conn: Connection;
-  beforeAll(async () => { conn = await createConnection(); });
-  afterAll(async () => { await conn.close(); });
+  beforeAll(async () => {
+    conn = await createConnection();
+  });
+  afterAll(async () => {
+    await conn.close();
+  });
 
   afterEach(async () => {
     // HACK: This is a really jank way to ensure that VSCode's Jest runner doesn't nuke the current
     // DB when you're running a dev server alongside your editor
-    const ormconfig = JSON.parse((await readFile('./ormconfig.json')).toString());
+    const ormconfig = JSON.parse(
+      (await readFile('./ormconfig.json')).toString(),
+    );
     const { database }: { database: string } = ormconfig;
     if (!database.endsWith('_test')) {
       throw new Error(`Cowardly refusing to clear non-test DB ${database}`);
@@ -61,7 +71,9 @@ describe('message db tests', () => {
   describe('classify', () => {
     let keywordLists: List[];
     beforeEach(async () => {
-      const rawYaml = readFileSync(join('fixtures', 'keywords.yaml')).toString();
+      const rawYaml = readFileSync(
+        join('fixtures', 'keywords.yaml'),
+      ).toString();
       keywordLists = parseKeywordLists(rawYaml);
       await createMessages();
     });

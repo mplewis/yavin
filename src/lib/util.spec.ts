@@ -20,11 +20,13 @@ describe('decode', () => {
 
 describe('headerPairsToHash', () => {
   it('converts a series of header pairs to a hash', () => {
-    expect(headerPairsToHash([
-      { name: 'full_name', value: 'Y.T.' },
-      { name: 'occupation', value: 'Kourier' },
-      { name: 'legal_status', value: 'Wanted' },
-    ])).toEqual({
+    expect(
+      headerPairsToHash([
+        { name: 'full_name', value: 'Y.T.' },
+        { name: 'occupation', value: 'Kourier' },
+        { name: 'legal_status', value: 'Wanted' },
+      ]),
+    ).toEqual({
       full_name: 'Y.T.',
       occupation: 'Kourier',
       legal_status: 'Wanted',
@@ -34,7 +36,13 @@ describe('headerPairsToHash', () => {
 
 describe('keepTruthy', () => {
   it('only keeps truthy items', () => {
-    const input: (string | null | undefined)[] = ['a', null, 'b', undefined, 'c'];
+    const input: (string | null | undefined)[] = [
+      'a',
+      null,
+      'b',
+      undefined,
+      'c',
+    ];
     const result: string[] = keepTruthy(input);
     expect(result).toEqual(['a', 'b', 'c']);
   });

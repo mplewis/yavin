@@ -2,9 +2,9 @@ import { readFile, writeFile } from 'fs-extra';
 import { join } from 'path';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-type Found = { found: true; value: any }
-type NotFound = { found: false }
-type Result = Found | NotFound
+type Found = { found: true; value: any };
+type NotFound = { found: false };
+type Result = Found | NotFound;
 
 /**
  * A simple key-value store using the filesystem.
@@ -12,7 +12,7 @@ type Result = Found | NotFound
  * Best-effort set/get - any errors either bubble up or turn into `NotFound`.
  */
 export default class Storage {
-  basePath: string
+  basePath: string;
 
   /**
    * Create a new instance of Storage.

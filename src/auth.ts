@@ -13,7 +13,7 @@ type OAuth2Client = any;
 /**
  * An access token provided by Google when a user authorizes access
  */
-type AccessToken = GalCreds
+type AccessToken = GalCreds;
 /* eslint-enable camelcase,@typescript-eslint/no-explicit-any */
 
 const storage = new Storage('./secrets');
@@ -23,7 +23,8 @@ const storage = new Storage('./secrets');
  * @param client The OAuth2 client to get token for.
  */
 async function askUserForAuthorization(
-  client: OAuth2Client, scope: string[],
+  client: OAuth2Client,
+  scope: string[]
 ): Promise<AccessToken> {
   const authUrl = client.generateAuthUrl({ access_type: 'offline', scope });
   console.log('Authorize this app by visiting this url:', authUrl);
@@ -45,7 +46,8 @@ async function askUserForAuthorization(
  * @param oAuth2Client The OAuth2 client to be initialized
  */
 async function initializeClientWithToken(
-  oAuth2Client: OAuth2Client, scopes: string[],
+  oAuth2Client: OAuth2Client,
+  scopes: string[]
 ): Promise<void> {
   const token = await storage.get('token');
   if (!token.found) {
@@ -65,7 +67,9 @@ async function initializeClientWithToken(
  *
  * @param credentials The authorization client credentials.
  */
-export default async function createClient(scopes: string[]): Promise<GmailClient> {
+export default async function createClient(
+  scopes: string[]
+): Promise<GmailClient> {
   const credentials = await storage.get('credentials');
   if (!credentials.found) throw new Error('No credentials found in storage');
   const {

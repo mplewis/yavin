@@ -1,5 +1,9 @@
 import {
-  selectPart, extractContent, extractPlaintextContent, contentTypeFor, categorize,
+  selectPart,
+  extractContent,
+  extractPlaintextContent,
+  contentTypeFor,
+  categorize,
 } from './content';
 import { MessagePart, Message } from '../types';
 import { encode as e } from './util';
@@ -15,8 +19,12 @@ describe('contentTypeFor', () => {
 
 describe('categorize', () => {
   it('categorizes as expected', () => {
-    expect(categorize('You just won a FREE cruise to literally anywhere!')).toEqual('plaintext');
-    expect(categorize('<html><body>Please, we need people to buy cruises')).toEqual('html');
+    expect(
+      categorize('You just won a FREE cruise to literally anywhere!'),
+    ).toEqual('plaintext');
+    expect(
+      categorize('<html><body>Please, we need people to buy cruises'),
+    ).toEqual('html');
   });
 });
 
@@ -74,42 +82,63 @@ describe('extractContent', () => {
       payload: {
         body: { data: e('I said come on, fhqwhgads') },
         parts: [
-          { mimeType: 'text/html', body: { data: e('everybody to the limit') } },
-          { mimeType: 'text/plain', body: { data: e('everybody, come on, fhqwhgads!') } },
+          {
+            mimeType: 'text/html',
+            body: { data: e('everybody to the limit') },
+          },
+          {
+            mimeType: 'text/plain',
+            body: { data: e('everybody, come on, fhqwhgads!') },
+          },
         ],
       },
     };
-    expect(extractContent(message)).toEqual(
-      { kind: 'plaintext', body: 'I said come on, fhqwhgads' },
-    );
+    expect(extractContent(message)).toEqual({
+      kind: 'plaintext',
+      body: 'I said come on, fhqwhgads',
+    });
   });
 
   it('uses the first part if no known types are present', () => {
     const message: Message = {
       payload: {
         parts: [
-          { mimeType: 'non/sense', body: { data: e('everybody to the limit') } },
-          { mimeType: 'the/limit', body: { data: e('everybody, come on, fhqwhgads!') } },
+          {
+            mimeType: 'non/sense',
+            body: { data: e('everybody to the limit') },
+          },
+          {
+            mimeType: 'the/limit',
+            body: { data: e('everybody, come on, fhqwhgads!') },
+          },
         ],
       },
     };
-    expect(extractContent(message)).toEqual(
-      { kind: 'unknown', body: 'everybody to the limit' },
-    );
+    expect(extractContent(message)).toEqual({
+      kind: 'unknown',
+      body: 'everybody to the limit',
+    });
   });
 
   it('obeys mimetype preference when using parts', () => {
     const message: Message = {
       payload: {
         parts: [
-          { mimeType: 'text/html', body: { data: e('everybody to the limit') } },
-          { mimeType: 'text/plain', body: { data: e('everybody, come on, fhqwhgads!') } },
+          {
+            mimeType: 'text/html',
+            body: { data: e('everybody to the limit') },
+          },
+          {
+            mimeType: 'text/plain',
+            body: { data: e('everybody, come on, fhqwhgads!') },
+          },
         ],
       },
     };
-    expect(extractContent(message)).toEqual(
-      { kind: 'plaintext', body: 'everybody, come on, fhqwhgads!' },
-    );
+    expect(extractContent(message)).toEqual({
+      kind: 'plaintext',
+      body: 'everybody, come on, fhqwhgads!',
+    });
   });
 
   it('returns null when no content is available', () => {
@@ -132,16 +161,22 @@ describe('extractPlaintextContent', () => {
         body: { data: e('<three> gallons <bakers chocolate>') },
       },
     };
-    expect(extractPlaintextContent(message)).toEqual('<three> gallons <bakers chocolate>');
+    expect(extractPlaintextContent(message)).toEqual(
+      '<three> gallons <bakers chocolate>',
+    );
   });
 
   it('automatically strips tags when `body` seems to contain HTML', () => {
     const message: Message = {
       payload: {
-        body: { data: e('<html><strong>4.5 kilograms</strong> organic celery</html>') },
+        body: {
+          data: e('<html><strong>4.5 kilograms</strong> organic celery</html>'),
+        },
       },
     };
-    expect(extractPlaintextContent(message)).toEqual('4.5 kilograms organic celery');
+    expect(extractPlaintextContent(message)).toEqual(
+      '4.5 kilograms organic celery',
+    );
   });
 
   describe('when `parts` provide explicit mimetypes', () => {
@@ -156,7 +191,9 @@ describe('extractPlaintextContent', () => {
           ],
         },
       };
-      expect(extractPlaintextContent(message)).toEqual('seven opening tags, any kind (e.g. <html>)');
+      expect(extractPlaintextContent(message)).toEqual(
+        'seven opening tags, any kind (e.g. <html>)',
+      );
     });
 
     it('strips tags from html', () => {
@@ -165,12 +202,18 @@ describe('extractPlaintextContent', () => {
           parts: [
             {
               mimeType: 'text/html',
-              body: { data: e('<html>approx. <strong>3,500 millipedes</strong> from Muir Woods') },
+              body: {
+                data: e(
+                  '<html>approx. <strong>3,500 millipedes</strong> from Muir Woods',
+                ),
+              },
             },
           ],
         },
       };
-      expect(extractPlaintextContent(message)).toEqual('approx. 3,500 millipedes from Muir Woods');
+      expect(extractPlaintextContent(message)).toEqual(
+        'approx. 3,500 millipedes from Muir Woods',
+      );
     });
   });
 });

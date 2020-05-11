@@ -4,7 +4,9 @@ import Message from '../entities/message';
 import { keepTruthy } from '../lib/util';
 
 /** Simply a GmailMessage with a guaranteed present ID. */
-export interface SparseMessage extends GmailMessage { id: string }
+export interface SparseMessage extends GmailMessage {
+  id: string;
+}
 
 /**
  * Cast a Gmail Message into SparseMessage. Used for ergonomics.
@@ -27,11 +29,15 @@ export async function shouldSaveMessage(messageId: string): Promise<boolean> {
  * Check a list of sparse messages and return only the ones that do not yet exist in the database.
  * @param sparseMessages The sparse messages to check
  */
-export async function omitKnownMessages(sparseMessages: SparseMessage[]): Promise<SparseMessage[]> {
+export async function omitKnownMessages(
+  sparseMessages: SparseMessage[],
+): Promise<SparseMessage[]> {
   return keepTruthy(
     await Promise.all(
-      sparseMessages.map(async (message) => (
-        (await shouldSaveMessage(message.id)) ? message : null)),
+      sparseMessages.map(async (message) => {
+        if (await shouldSaveMessage(message.id)) return message;
+        return null;
+      }),
     ),
   );
 }
@@ -47,7 +53,8 @@ export async function omitKnownMessages(sparseMessages: SparseMessage[]): Promis
  * @param sparseMessages The sparse messages to hydrate
  */
 export async function hydrateAll(
-  client: GmailClient, sparseMessages: SparseMessage[],
+  client: GmailClient,
+  sparseMessages: SparseMessage[],
 ): Promise<GmailMessage[]> {
   return Promise.all(
     sparseMessages.map(({ id }) => {

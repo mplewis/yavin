@@ -30,13 +30,19 @@ describe('castToSparse', () => {
 
 describe('message db tests', () => {
   let conn: Connection;
-  beforeAll(async () => { conn = await createConnection(); });
-  afterAll(async () => { await conn.close(); });
+  beforeAll(async () => {
+    conn = await createConnection();
+  });
+  afterAll(async () => {
+    await conn.close();
+  });
 
   afterEach(async () => {
     // HACK: This is a really jank way to ensure that VSCode's Jest runner doesn't nuke the current
     // DB when you're running a dev server alongside your editor
-    const ormconfig = JSON.parse((await readFile('./ormconfig.json')).toString());
+    const ormconfig = JSON.parse(
+      (await readFile('./ormconfig.json')).toString(),
+    );
     const { database }: { database: string } = ormconfig;
     if (!database.endsWith('_test')) {
       throw new Error(`Cowardly refusing to clear non-test DB ${database}`);
@@ -45,12 +51,14 @@ describe('message db tests', () => {
   });
 
   async function insertMessagesWithIds(...ids: string[]): Promise<void> {
-    await Promise.all(ids.map((id) => {
-      const message = new Message();
-      message.gmailId = id;
-      message.data = {};
-      return message.save();
-    }));
+    await Promise.all(
+      ids.map((id) => {
+        const message = new Message();
+        message.gmailId = id;
+        message.data = {};
+        return message.save();
+      }),
+    );
   }
 
   describe('shouldSaveMessage', () => {
@@ -73,14 +81,21 @@ describe('message db tests', () => {
 
     it('omits messages that have already been persisted', async () => {
       const input: SparseMessage[] = [
-        { id: 'known1' }, { id: 'known2' }, { id: 'unknown1' }, { id: 'unknown2' }];
-      expect(await omitKnownMessages(input)).toEqual([{ id: 'unknown1' }, { id: 'unknown2' }]);
+        { id: 'known1' },
+        { id: 'known2' },
+        { id: 'unknown1' },
+        { id: 'unknown2' },
+      ];
+      expect(await omitKnownMessages(input)).toEqual([
+        { id: 'unknown1' },
+        { id: 'unknown2' },
+      ]);
     });
   });
 
   describe('hydrateAll', () => {
     it('hydrates the specified messages', async () => {
-      const fakeClient = null as unknown as GmailClient;
+      const fakeClient = (null as unknown) as GmailClient;
       const input: SparseMessage[] = [{ id: '1' }, { id: '2' }, { id: '3' }];
       const result = await hydrateAll(fakeClient, input);
       expect(result).toEqual([
@@ -101,12 +116,18 @@ describe('message db tests', () => {
       const result = await persistAll(input);
       expect(result).toEqual(3);
       expect(await Message.count()).toEqual(3);
-      expect(await Message.findOne({ gmailId: '1' }))
-        .toMatchObject({ gmailId: '1', data: { id: '1', raw: 'hydrated_gmail_message' } });
-      expect(await Message.findOne({ gmailId: '2' }))
-        .toMatchObject({ gmailId: '2', data: { id: '2', raw: 'hydrated_gmail_message' } });
-      expect(await Message.findOne({ gmailId: '3' }))
-        .toMatchObject({ gmailId: '3', data: { id: '3', raw: 'hydrated_gmail_message' } });
+      expect(await Message.findOne({ gmailId: '1' })).toMatchObject({
+        gmailId: '1',
+        data: { id: '1', raw: 'hydrated_gmail_message' },
+      });
+      expect(await Message.findOne({ gmailId: '2' })).toMatchObject({
+        gmailId: '2',
+        data: { id: '2', raw: 'hydrated_gmail_message' },
+      });
+      expect(await Message.findOne({ gmailId: '3' })).toMatchObject({
+        gmailId: '3',
+        data: { id: '3', raw: 'hydrated_gmail_message' },
+      });
     });
   });
 
@@ -119,14 +140,18 @@ describe('message db tests', () => {
     });
 
     it('persists messages that do not yet exist in the database', async () => {
-      const fakeClient = null as unknown as GmailClient;
+      const fakeClient = (null as unknown) as GmailClient;
       const result = await persist(fakeClient);
       expect(result).toEqual({ listed: 3, saved: 2 });
       expect(await Message.count()).toEqual(3);
-      expect(await Message.findOne({ gmailId: '1' }))
-        .toMatchObject({ gmailId: '1', data: { id: '1', raw: 'hydrated_gmail_message' } });
-      expect(await Message.findOne({ gmailId: '3' }))
-        .toMatchObject({ gmailId: '3', data: { id: '3', raw: 'hydrated_gmail_message' } });
+      expect(await Message.findOne({ gmailId: '1' })).toMatchObject({
+        gmailId: '1',
+        data: { id: '1', raw: 'hydrated_gmail_message' },
+      });
+      expect(await Message.findOne({ gmailId: '3' })).toMatchObject({
+        gmailId: '3',
+        data: { id: '3', raw: 'hydrated_gmail_message' },
+      });
     });
   });
 });

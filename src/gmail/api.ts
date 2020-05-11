@@ -27,7 +27,10 @@ export async function listMessages(client: GmailClient): Promise<Message[]> {
  * @param client An authorized GmailClient
  * @param id The ID of the thread to retrieve
  */
-export async function getThread(client: GmailClient, id: string): Promise<Message[]> {
+export async function getThread(
+  client: GmailClient,
+  id: string,
+): Promise<Message[]> {
   const resp = await client.users.threads.get({ userId: 'me', id });
   const { messages } = resp.data;
   if (!messages) throw new Error('thread has no messages');
@@ -39,7 +42,10 @@ export async function getThread(client: GmailClient, id: string): Promise<Messag
  * @param client An authorized GmailClient
  * @param id The ID of the message to retrieve
  */
-export async function getMessage(client: GmailClient, id: string): Promise<Message> {
+export async function getMessage(
+  client: GmailClient,
+  id: string,
+): Promise<Message> {
   const resp = await client.users.messages.get({ userId: 'me', id });
   return resp.data;
 }

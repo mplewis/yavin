@@ -2,8 +2,8 @@ import striptags from 'striptags';
 import { MessagePart, Message, SNU } from '../types';
 import { decode } from './util';
 
-type Content = { kind: ContentType; body: string }
-type ContentType = 'plaintext' | 'html' | 'unknown'
+type Content = { kind: ContentType; body: string };
+type ContentType = 'plaintext' | 'html' | 'unknown';
 
 const MIME_TO_CONTENT_TYPE: { [m: string]: ContentType } = {
   'text/plain': 'plaintext',
@@ -14,10 +14,7 @@ const MIME_TO_CONTENT_TYPE: { [m: string]: ContentType } = {
  * Mimetypes in this list will be preferred in top-down order when searching an email's parts
  * for valid body content
  */
-const PREFERRED_MIMETYPES = [
-  'text/plain',
-  'text/html',
-];
+const PREFERRED_MIMETYPES = ['text/plain', 'text/html'];
 
 /**
  * If body content contains one of these, it's probably HTML. If not, it's probably plaintext.
@@ -55,14 +52,20 @@ export function categorize(body: string): ContentType {
 export function selectPart(parts: MessagePart[]): MessagePart {
   // HACK: multipart-alternative contains the ACTUAL parts I want to parse out,
   // and I'm making a lot of assumptions about how I can find those actual parts right now
-  const container = parts.find((part) => part.mimeType === 'multipart/alternative' && part.parts);
+  const container = parts.find(
+    (part) => part.mimeType === 'multipart/alternative' && part.parts,
+  );
   // HACK: ?. silences ts; ugly but i promise we already did the check in the #find
-  if (container?.parts) { return selectPart(container.parts); }
+  if (container?.parts) {
+    return selectPart(container.parts);
+  }
 
   let selected: MessagePart | undefined;
   PREFERRED_MIMETYPES.forEach((preferred) => {
     if (selected) return;
-    selected = parts.find((part) => part.mimeType === preferred && part.body?.data);
+    selected = parts.find(
+      (part) => part.mimeType === preferred && part.body?.data,
+    );
   });
   if (selected) return selected;
   return parts[0];

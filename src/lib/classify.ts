@@ -5,17 +5,26 @@ import yaml from 'js-yaml';
 import { StrNum } from '../types';
 
 /** A list of keywords to be used for analyzing and tagging an email. */
-export type List = { name: string; threshold: number; words: string[]; phrases: string[] }
+export type List = {
+  name: string;
+  threshold: number;
+  words: string[];
+  phrases: string[];
+};
 type BodyWithWordCounts = {
   body: string;
   words: string[];
   wordCounts: { [word: string]: number };
-}
+};
 
 /**
  * The values for each key in the keywords file.
  */
-type KeywordDetails = { threshold: number; description: string; keywords: string[] }
+type KeywordDetails = {
+  threshold: number;
+  description: string;
+  keywords: string[];
+};
 
 /**
  * Count instances of unique strings.
@@ -103,7 +112,10 @@ export function parseKeywordLists(rawYaml: string): List[] {
       words.push(stem(lowered));
     });
     lists.push({
-      name, threshold, words, phrases,
+      name,
+      threshold,
+      words,
+      phrases,
     });
   });
   return lists;
@@ -115,7 +127,10 @@ export function parseKeywordLists(rawYaml: string): List[] {
  * @param bodyWc The body with word counts to analyze
  * @param list The list to search for matching words
  */
-export function evaluateListWords(bodyWc: BodyWithWordCounts, list: List): number {
+export function evaluateListWords(
+  bodyWc: BodyWithWordCounts,
+  list: List,
+): number {
   const { wordCounts } = bodyWc;
   const { words } = list;
   return words.reduce((total, word) => total + (wordCounts[word] || 0), 0);
@@ -127,7 +142,10 @@ export function evaluateListWords(bodyWc: BodyWithWordCounts, list: List): numbe
  * @param bodyWc The body with word counts to analyze
  * @param list The list to search for matching phrases
  */
-export function evaluateListPhrases(bodyWc: BodyWithWordCounts, list: List): number {
+export function evaluateListPhrases(
+  bodyWc: BodyWithWordCounts,
+  list: List,
+): number {
   const { body } = bodyWc;
   const { phrases } = list;
   return phrases.reduce((total, phrase) => {
@@ -144,7 +162,8 @@ export function evaluateListPhrases(bodyWc: BodyWithWordCounts, list: List): num
  * @param list The list to search for matching phrases
  */
 export function evaluateList(
-  bodyWc: BodyWithWordCounts, list: List,
+  bodyWc: BodyWithWordCounts,
+  list: List,
 ): { hits: number; frequency: number } {
   const hits = evaluateListWords(bodyWc, list) + evaluateListPhrases(bodyWc, list);
   const frequency = hits / bodyWc.words.length;
@@ -152,16 +171,18 @@ export function evaluateList(
 }
 
 /**
-   * Tag a document based on the relative frequency of occurring words from keyword lists.
-   * @param body The body to analyze
-   * @param lists The lists to search for matching keywords
-   * @param threshold A fractional percentage (`0 < n < 1`).
-   *                  If `category_hits / word_count >= threshold`, the tag is applied.
-   */
+ * Tag a document based on the relative frequency of occurring words from keyword lists.
+ * @param body The body to analyze
+ * @param lists The lists to search for matching keywords
+ * @param threshold A fractional percentage (`0 < n < 1`).
+ *                  If `category_hits / word_count >= threshold`, the tag is applied.
+ */
 export function tag(body: string, lists: List[]): string[] {
   const bodyWc = analyzeBody(body);
-  return lists.filter((list) => {
-    const { frequency } = evaluateList(bodyWc, list);
-    return frequency >= list.threshold;
-  }).map((list) => list.name);
+  return lists
+    .filter((list) => {
+      const { frequency } = evaluateList(bodyWc, list);
+      return frequency >= list.threshold;
+    })
+    .map((list) => list.name);
 }
