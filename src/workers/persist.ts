@@ -90,6 +90,7 @@ export async function persistAll(messages: GmailMessage[]): Promise<number> {
  * (`messages.get`, unseen emails we retrieved and persisted in the database).
  *
  * @param client The Gmail client to be used to access the user's inbox
+ * @param query The Gmail query to be used to list messages. Defaults to messages in the inbox.
  */
 export default async function persist(
   client: GmailClient,
