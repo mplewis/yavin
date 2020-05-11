@@ -15,7 +15,7 @@ Scan your email for treachery
 - [ ] Criteria for converting tags to suspicion
 - [ ] Move emails from inbox to Yavin suspicious tag
 - [ ] Tell user why emails are marked suspicious
-- [ ] Start both frontend and backend with `yarn start`
+- [x] Start both frontend and backend with `yarn start`
 - [ ] Make categories on top work
 - [ ] Write user guide in README
 - [ ] Send user daily summary email
