@@ -5,7 +5,9 @@
   "scripts": {
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
-    "test:unit": "vue-cli-service test:unit"
+    "test": "yarn test:jest && yarn test:lint",
+    "test:jest": "vue-cli-service test:unit",
+    "test:lint": "eslint src/**/*.ts"
   },
   "dependencies": {
     "bootstrap": "^4.4.1",
