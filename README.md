@@ -16,9 +16,11 @@ Scan your email for treachery
 - [ ] Move emails from inbox to Yavin suspicious tag
 - [ ] Tell user why emails are marked suspicious
 - [ ] Start both frontend and backend with `yarn start`
+- [ ] Make categories on top work
 - [ ] Write user guide in README
 - [ ] Send user daily summary email
 - [ ] Don't re-tag emails with a tagged date
+- [ ] Fix build
 - [ ] Make `yarn test` run frontend tests and linting too
 
 # Stretch Goals
