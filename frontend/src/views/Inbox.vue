@@ -29,7 +29,7 @@
             <b-col>
               <Summary
                 :brief="message"
-                :selected="i + pageStart === currMessageIndex"
+                :selected="i === currMessageIndex"
                 @click="show(i)"
               />
             </b-col>
@@ -111,8 +111,6 @@ async function getEmails(page: number): Promise<EmailResponse[]> {
 export default class Inbox extends Vue {
   pagesOfMessages: EmailResponse[][] = [];
 
-  message: EmailResponse | null = null;
-
   currMessageIndex: number | null = null;
 
   page = 0;
@@ -146,6 +144,13 @@ export default class Inbox extends Vue {
     return this.pagesOfMessages[this.page];
   }
 
+  get message(): EmailResponse | null {
+    if (this.currMessageIndex === null) return null;
+    const page = this.pagesOfMessages[this.page];
+    if (!page) return null;
+    return page[this.currMessageIndex];
+  }
+
   async mounted(): Promise<void> {
     this.messageCount = await getPageCount();
     this.pageCount = Math.ceil(this.messageCount / PAGE_SIZE);
@@ -153,6 +158,7 @@ export default class Inbox extends Vue {
   }
 
   async loadPage(page: number): Promise<void> {
+    this.deselect();
     this.page = page;
     console.log('loading page', page);
     if (this.messages) return;
@@ -165,7 +171,11 @@ export default class Inbox extends Vue {
 
   show(i: number): void {
     if (!this.messages) return;
-    this.message = this.pagesOfMessages[this.page][i];
+    this.currMessageIndex = i;
+  }
+
+  deselect(): void {
+    this.currMessageIndex = null;
   }
 
   nextPage(): void {
