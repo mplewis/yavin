@@ -20,8 +20,7 @@
           <b-col>
             <button @click="prevPage" :disabled="!canPrevPage">&laquo;</button
             ><span class="status"
-              >{{ pageStart + 1 }} to {{ pageEnd }} of
-              {{ messages.length }}</span
+              >{{ pageStart + 1 }} to {{ pageEnd }} of {{ messageCount }}</span
             ><button @click="nextPage" :disabled="!canNextPage">&raquo;</button>
           </b-col>
         </b-row>
@@ -52,6 +51,7 @@
 // HACK: Vue can't find the window.fetch type
 import { fetch } from 'whatwg-fetch';
 import { Vue, Component } from 'vue-property-decorator';
+import { stringify } from 'query-string';
 import { EmailResponse } from '../types';
 import Summary from '../components/Summary.vue';
 import Details from '../components/Details.vue';
@@ -65,17 +65,42 @@ const MAX_ATTEMPTS = 3;
  */
 const PAGE_SIZE = 8;
 
-async function getEmails(attempt = 1): Promise<EmailResponse[]> {
-  if (attempt > MAX_ATTEMPTS) throw new Error('Could not load emails');
-  try {
-    const resp = await fetch('//localhost:9999/emails');
-    const ms: EmailResponse[] = await resp.json();
-    return ms;
-  } catch (e) {
-    console.warn(`getEmails: attempt ${attempt} failed, retrying`);
-    console.warn(e);
-    return getEmails(attempt + 1);
-  }
+function urlWithQs(
+  url: string,
+  queryParams: { [k: string]: string | number },
+): string {
+  return `${url}?${stringify(queryParams)}`;
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function fetchJsonRetry(url: string): Promise<any> {
+  /* eslint-disable no-await-in-loop */
+  let attempts = 0;
+  do {
+    try {
+      const resp = await fetch(url);
+      const data = await resp.json();
+      return data;
+    } catch (e) {
+      attempts += 1;
+      console.warn(`Attempt ${attempts} failed: ${url}`);
+    }
+  } while (attempts < MAX_ATTEMPTS);
+  throw new Error(`Failed to load after ${MAX_ATTEMPTS} attempts: ${url}`);
+  /* eslint-enable no-await-in-loop */
+}
+
+async function getPageCount(): Promise<number> {
+  return fetchJsonRetry('//localhost:9999/emails/count');
+}
+
+async function getEmails(page: number): Promise<EmailResponse[]> {
+  const url = urlWithQs('//localhost:9999/emails', {
+    offset: page * PAGE_SIZE,
+    limit: PAGE_SIZE,
+  });
+  const data = await fetchJsonRetry(url);
+  return data as EmailResponse[];
 }
 
 @Component({
@@ -90,17 +115,16 @@ export default class Inbox extends Vue {
 
   page = 0;
 
-  get pages(): number {
-    if (!this.messages) return 0;
-    return Math.ceil(this.messages.length / PAGE_SIZE);
-  }
+  messageCount = 0;
+
+  pageCount = 0;
 
   get pageStart(): number {
     return PAGE_SIZE * this.page;
   }
 
   get pageEnd(): number {
-    return Math.min(PAGE_SIZE * (this.page + 1), this.messages.length);
+    return Math.min(PAGE_SIZE * (this.page + 1), this.messageCount);
   }
 
   get pagedMessages(): EmailResponse[] {
@@ -113,11 +137,13 @@ export default class Inbox extends Vue {
   }
 
   get canNextPage(): boolean {
-    return this.page < this.pages - 1;
+    return this.page < this.pageCount - 1;
   }
 
   async mounted(): Promise<void> {
-    this.messages = await getEmails();
+    this.messageCount = await getPageCount();
+    this.pageCount = Math.ceil(this.messageCount / PAGE_SIZE);
+    this.messages = await getEmails(this.page);
   }
 
   show(i: number): void {

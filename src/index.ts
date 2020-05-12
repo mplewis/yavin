@@ -78,6 +78,10 @@ function createApp(): Express {
     const emails = messages.map((m) => convertMessage(m));
     res.json(emails);
   });
+  app.get('/emails/count', async (_req, res) => {
+    const count = await Message.count();
+    res.json(count);
+  });
   return app;
 }
 

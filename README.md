@@ -25,6 +25,7 @@ Scan your email for treachery
 - [x] List TODOs command
 - [x] Implement pagination in fetch emails
 - [x] Fix files with pre-commit hook
+- [ ] Server REST spec
 
 # Stretch Goals
 
