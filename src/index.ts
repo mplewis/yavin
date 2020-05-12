@@ -15,6 +15,13 @@ const ORIGIN = 'http://localhost:8080'; // HACK: This only works with the Vue de
 const WORKER_INTERVAL = 5 * 60 * 1000; // 5m
 const SCOPES = ['https://www.googleapis.com/auth/gmail.modify'];
 
+const DEFAULT_PAGE_COUNT = 10;
+
+// HACK: Stolen from Express because I can't get it to import
+interface Query {
+  [key: string]: string | Query | Array<string | Query>;
+}
+
 function work(name: string, task: () => any): void {
   const once = async (): Promise<void> => {
     console.log(`Task ${name} starting`);
@@ -24,6 +31,19 @@ function work(name: string, task: () => any): void {
   };
   once();
   setInterval(once, WORKER_INTERVAL);
+}
+
+function numPlucker(query: Query) {
+  return function pluck(key: string, dfault: number): number {
+    const raw = query[key];
+    if (!raw) return dfault;
+    if (typeof raw !== 'string') {
+      throw new Error(
+        `Cannot pluck non-String value from query for key ${key}: ${raw}`,
+      );
+    }
+    return parseInt(raw, 10);
+  };
 }
 
 function convertMessage(message: Message): EmailResponse {
@@ -50,10 +70,17 @@ function convertMessage(message: Message): EmailResponse {
 function createApp(): Express {
   const app = express();
   app.use(cors({ origin: ORIGIN }));
-  app.get('/emails', async (_req, res) => {
-    const messages = await Message.find();
+  app.get('/emails', async (req, res) => {
+    const pluck = numPlucker(req.query);
+    const limit = pluck('limit', DEFAULT_PAGE_COUNT);
+    const offset = pluck('offset', 0);
+    const messages = await Message.find({ take: limit, skip: offset });
     const emails = messages.map((m) => convertMessage(m));
     res.json(emails);
+  });
+  app.get('/emails/count', async (_req, res) => {
+    const count = await Message.count();
+    res.json(count);
   });
   return app;
 }

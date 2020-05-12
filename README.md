@@ -19,12 +19,13 @@ Scan your email for treachery
 - [ ] Make categories on top work
 - [ ] Write user guide in README
 - [ ] Send user daily summary email
-- [ ] Don't re-tag emails with a tagged date
+- [x] Don't re-tag emails with a tagged date
 - [x] Fix build
 - [x] Make `yarn test` run frontend tests and linting too
 - [x] List TODOs command
 - [x] Implement pagination in fetch emails
 - [x] Fix files with pre-commit hook
+- [ ] Server REST spec
 
 # Stretch Goals
 

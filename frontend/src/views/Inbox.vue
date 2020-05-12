@@ -14,35 +14,36 @@
         </b-collapse>
       </b-navbar>
     </b-row>
-    <b-row v-if="messages">
+    <b-row>
       <b-col cols="4">
         <b-row class="paginator">
           <b-col>
             <button @click="prevPage" :disabled="!canPrevPage">&laquo;</button
             ><span class="status"
-              >{{ pageStart + 1 }} to {{ pageEnd }} of
-              {{ messages.length }}</span
+              >{{ pageStart + 1 }} to {{ pageEnd }} of {{ messageCount }}</span
             ><button @click="nextPage" :disabled="!canNextPage">&raquo;</button>
           </b-col>
         </b-row>
-        <b-row v-for="(message, i) in pagedMessages" :key="i">
+        <span v-if="messages">
+          <b-row v-for="(message, i) in messages" :key="i">
+            <b-col>
+              <Summary
+                :brief="message"
+                :selected="i === currMessageIndex"
+                @click="show(i)"
+              />
+            </b-col>
+          </b-row>
+        </span>
+        <b-row v-else>
           <b-col>
-            <Summary
-              :brief="message"
-              :selected="i + pageStart === currMessageIndex"
-              @click="show(i)"
-            />
+            <p class="loading">Loading...</p>
           </b-col>
         </b-row>
       </b-col>
       <b-col cols="8">
         <Details v-if="message" :details="message" />
         <p v-else>Select a message to view.</p>
-      </b-col>
-    </b-row>
-    <b-row v-else>
-      <b-col>
-        <h1>Loading...</h1>
       </b-col>
     </b-row>
   </b-container>
@@ -52,6 +53,7 @@
 // HACK: Vue can't find the window.fetch type
 import { fetch } from 'whatwg-fetch';
 import { Vue, Component } from 'vue-property-decorator';
+import { stringify } from 'query-string';
 import { EmailResponse } from '../types';
 import Summary from '../components/Summary.vue';
 import Details from '../components/Details.vue';
@@ -65,47 +67,64 @@ const MAX_ATTEMPTS = 3;
  */
 const PAGE_SIZE = 8;
 
-async function getEmails(attempt = 1): Promise<EmailResponse[]> {
-  if (attempt > MAX_ATTEMPTS) throw new Error('Could not load emails');
-  try {
-    const resp = await fetch('//localhost:9999/emails');
-    const ms: EmailResponse[] = await resp.json();
-    return ms;
-  } catch (e) {
-    console.warn(`getEmails: attempt ${attempt} failed, retrying`);
-    console.warn(e);
-    return getEmails(attempt + 1);
-  }
+function urlWithQs(
+  url: string,
+  queryParams: { [k: string]: string | number },
+): string {
+  return `${url}?${stringify(queryParams)}`;
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function fetchJsonRetry(url: string): Promise<any> {
+  /* eslint-disable no-await-in-loop */
+  let attempts = 0;
+  do {
+    try {
+      const resp = await fetch(url);
+      const data = await resp.json();
+      return data;
+    } catch (e) {
+      attempts += 1;
+      console.warn(`Attempt ${attempts} failed: ${url}`);
+    }
+  } while (attempts < MAX_ATTEMPTS);
+  throw new Error(`Failed to load after ${MAX_ATTEMPTS} attempts: ${url}`);
+  /* eslint-enable no-await-in-loop */
+}
+
+async function getPageCount(): Promise<number> {
+  return fetchJsonRetry('//localhost:9999/emails/count');
+}
+
+async function getEmails(page: number): Promise<EmailResponse[]> {
+  const url = urlWithQs('//localhost:9999/emails', {
+    offset: page * PAGE_SIZE,
+    limit: PAGE_SIZE,
+  });
+  const data = await fetchJsonRetry(url);
+  return data as EmailResponse[];
 }
 
 @Component({
   components: { Summary, Details },
 })
 export default class Inbox extends Vue {
-  messages: EmailResponse[] | null = null;
-
-  message: EmailResponse | null = null;
+  pagesOfMessages: EmailResponse[][] = [];
 
   currMessageIndex: number | null = null;
 
   page = 0;
 
-  get pages(): number {
-    if (!this.messages) return 0;
-    return Math.ceil(this.messages.length / PAGE_SIZE);
-  }
+  messageCount = 0;
+
+  pageCount = 0;
 
   get pageStart(): number {
     return PAGE_SIZE * this.page;
   }
 
   get pageEnd(): number {
-    return Math.min(PAGE_SIZE * (this.page + 1), this.messages.length);
-  }
-
-  get pagedMessages(): EmailResponse[] {
-    if (!this.messages) return [];
-    return this.messages.slice(this.pageStart, this.pageEnd);
+    return Math.min(PAGE_SIZE * (this.page + 1), this.messageCount);
   }
 
   get canPrevPage(): boolean {
@@ -113,27 +132,60 @@ export default class Inbox extends Vue {
   }
 
   get canNextPage(): boolean {
-    return this.page < this.pages - 1;
+    return this.page < this.pageCount - 1;
+  }
+
+  get messages(): EmailResponse[] {
+    console.log({
+      all: this.pagesOfMessages,
+      data: this.pagesOfMessages[this.page],
+      page: this.page,
+    });
+    return this.pagesOfMessages[this.page];
+  }
+
+  get message(): EmailResponse | null {
+    if (this.currMessageIndex === null) return null;
+    const page = this.pagesOfMessages[this.page];
+    if (!page) return null;
+    return page[this.currMessageIndex];
   }
 
   async mounted(): Promise<void> {
-    this.messages = await getEmails();
+    this.messageCount = await getPageCount();
+    this.pageCount = Math.ceil(this.messageCount / PAGE_SIZE);
+    await this.loadPage(this.page);
+  }
+
+  async loadPage(page: number): Promise<void> {
+    this.deselect();
+    this.page = page;
+    console.log('loading page', page);
+    if (this.messages) return;
+    const pageData = await getEmails(page);
+    console.log('assigning to:', page, pageData);
+    this.pagesOfMessages[this.page] = pageData;
+    this.$set(this.pagesOfMessages, this.page, pageData);
+    console.log('done:', this.pagesOfMessages);
   }
 
   show(i: number): void {
     if (!this.messages) return;
-    this.currMessageIndex = i + this.pageStart;
-    this.message = this.messages[this.currMessageIndex];
+    this.currMessageIndex = i;
+  }
+
+  deselect(): void {
+    this.currMessageIndex = null;
   }
 
   nextPage(): void {
     if (!this.canNextPage) return;
-    this.page += 1;
+    this.loadPage(this.page + 1);
   }
 
   prevPage(): void {
     if (!this.canPrevPage) return;
-    this.page -= 1;
+    this.loadPage(this.page - 1);
   }
 }
 </script>
@@ -144,6 +196,9 @@ dark-blue = #2980b9 // Flat UI Colors: Belize Hole
 
 nav
   width: 100%
+
+.loading
+  font-style: italic
 
 .paginator
   text-align: center
