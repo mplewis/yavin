@@ -14,7 +14,7 @@
         </b-collapse>
       </b-navbar>
     </b-row>
-    <b-row v-if="messages">
+    <b-row>
       <b-col cols="4">
         <b-row class="paginator">
           <b-col>
@@ -24,24 +24,26 @@
             ><button @click="nextPage" :disabled="!canNextPage">&raquo;</button>
           </b-col>
         </b-row>
-        <b-row v-for="(message, i) in pagedMessages" :key="i">
+        <span v-if="messages">
+          <b-row v-for="(message, i) in messages" :key="i">
+            <b-col>
+              <Summary
+                :brief="message"
+                :selected="i + pageStart === currMessageIndex"
+                @click="show(i)"
+              />
+            </b-col>
+          </b-row>
+        </span>
+        <b-row v-else>
           <b-col>
-            <Summary
-              :brief="message"
-              :selected="i + pageStart === currMessageIndex"
-              @click="show(i)"
-            />
+            <p class="loading">Loading...</p>
           </b-col>
         </b-row>
       </b-col>
       <b-col cols="8">
         <Details v-if="message" :details="message" />
         <p v-else>Select a message to view.</p>
-      </b-col>
-    </b-row>
-    <b-row v-else>
-      <b-col>
-        <h1>Loading...</h1>
       </b-col>
     </b-row>
   </b-container>
@@ -107,7 +109,7 @@ async function getEmails(page: number): Promise<EmailResponse[]> {
   components: { Summary, Details },
 })
 export default class Inbox extends Vue {
-  messages: EmailResponse[] | null = null;
+  pagesOfMessages: EmailResponse[][] = [];
 
   message: EmailResponse | null = null;
 
@@ -127,11 +129,6 @@ export default class Inbox extends Vue {
     return Math.min(PAGE_SIZE * (this.page + 1), this.messageCount);
   }
 
-  get pagedMessages(): EmailResponse[] {
-    if (!this.messages) return [];
-    return this.messages.slice(this.pageStart, this.pageEnd);
-  }
-
   get canPrevPage(): boolean {
     return this.page > 0;
   }
@@ -140,26 +137,45 @@ export default class Inbox extends Vue {
     return this.page < this.pageCount - 1;
   }
 
+  get messages(): EmailResponse[] {
+    console.log({
+      all: this.pagesOfMessages,
+      data: this.pagesOfMessages[this.page],
+      page: this.page,
+    });
+    return this.pagesOfMessages[this.page];
+  }
+
   async mounted(): Promise<void> {
     this.messageCount = await getPageCount();
     this.pageCount = Math.ceil(this.messageCount / PAGE_SIZE);
-    this.messages = await getEmails(this.page);
+    await this.loadPage(this.page);
+  }
+
+  async loadPage(page: number): Promise<void> {
+    this.page = page;
+    console.log('loading page', page);
+    if (this.messages) return;
+    const pageData = await getEmails(page);
+    console.log('assigning to:', page, pageData);
+    this.pagesOfMessages[this.page] = pageData;
+    this.$set(this.pagesOfMessages, this.page, pageData);
+    console.log('done:', this.pagesOfMessages);
   }
 
   show(i: number): void {
     if (!this.messages) return;
-    this.currMessageIndex = i + this.pageStart;
-    this.message = this.messages[this.currMessageIndex];
+    this.message = this.pagesOfMessages[this.page][i];
   }
 
   nextPage(): void {
     if (!this.canNextPage) return;
-    this.page += 1;
+    this.loadPage(this.page + 1);
   }
 
   prevPage(): void {
     if (!this.canPrevPage) return;
-    this.page -= 1;
+    this.loadPage(this.page - 1);
   }
 }
 </script>
@@ -170,6 +186,9 @@ dark-blue = #2980b9 // Flat UI Colors: Belize Hole
 
 nav
   width: 100%
+
+.loading
+  font-style: italic
 
 .paginator
   text-align: center
