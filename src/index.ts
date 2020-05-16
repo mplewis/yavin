@@ -9,11 +9,11 @@ import { headerPairsToHash } from './lib/util';
 import classify from './workers/classify';
 import persist from './workers/persist';
 import createClient from './auth';
+import installRouter from './auth/install_router';
 
 const DEFAULT_PORT = 9999;
 const ORIGIN = 'http://localhost:8080'; // HACK: This only works with the Vue dev server for now
 const WORKER_INTERVAL = 5 * 60 * 1000; // 5m
-const SCOPES = ['https://www.googleapis.com/auth/gmail.modify'];
 
 const DEFAULT_PAGE_COUNT = 10;
 
@@ -67,7 +67,7 @@ function convertMessage(message: Message): EmailResponse {
   };
 }
 
-function createApp(): Express {
+async function createApp(): Promise<Express> {
   const app = express();
   app.use(cors({ origin: ORIGIN }));
   app.get('/emails', async (req, res) => {
@@ -86,7 +86,8 @@ function createApp(): Express {
 }
 
 async function startWorkers(): Promise<void> {
-  const client = await createClient(SCOPES);
+  const client = await createClient();
+  if (!client) throw new Error('Cannot create workers; client is not ready');
   work('persist', async () => {
     await persist(client);
   });
@@ -98,8 +99,9 @@ async function startWorkers(): Promise<void> {
 async function main(): Promise<void> {
   const port = process.env.PORT || DEFAULT_PORT;
   await createConnection();
-  startWorkers();
-  const app = createApp();
+  const app = await createApp();
+  // The app must be started so the user can complete the interactive flow
+  installRouter({ app, onSigninComplete: startWorkers });
   app.listen(port, () => {
     console.log(`Serving on http://localhost:${port}`);
   });
