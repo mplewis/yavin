@@ -1,11 +1,18 @@
 import { Express, Response } from 'express';
 import pug from 'pug';
 import { join } from 'path';
+import { UploadedFile } from 'express-fileupload';
 import Storage from '../lib/storage';
 
 const storage = new Storage('./secrets');
 
 const FRONTEND_SERVER = 'http://localhost:8080';
+
+function isFileArray(
+  thing: UploadedFile | UploadedFile[],
+): thing is UploadedFile[] {
+  return Object.prototype.hasOwnProperty.call(thing, 'length');
+}
 
 function render(
   res: Response,
@@ -53,5 +60,29 @@ export default async function installRouter({
 
     onSigninComplete();
     res.redirect(FRONTEND_SERVER);
+  });
+
+  app.post('/save_creds', async (req, res) => {
+    function clientError(msg: string): void {
+      res.status(400).send(msg);
+    }
+
+    const file = req?.files && req.files['creds.json'];
+    if (!file) {
+      clientError('Missing uploaded file creds.json');
+      return;
+    }
+
+    if (isFileArray(file)) {
+      clientError('Uploaded more than one file for creds.json');
+      return;
+    }
+
+    const data = file.data.toString();
+    // TODO: Validate creds look sane and wipe if they don't work
+    await storage.set('credentials', data);
+    console.log('Saved provided credentials');
+
+    res.redirect('/');
   });
 }

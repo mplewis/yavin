@@ -1,6 +1,7 @@
 import 'reflect-metadata';
 import cors from 'cors';
 import express, { Express } from 'express';
+import fileUpload from 'express-fileupload';
 import { createConnection } from 'typeorm';
 import Message from './entities/message';
 import { extractPlaintextContent } from './lib/content';
@@ -70,6 +71,7 @@ function convertMessage(message: Message): EmailResponse {
 async function createApp(): Promise<Express> {
   const app = express();
   app.use(cors({ origin: ORIGIN }));
+  app.use(fileUpload());
   app.get('/emails', async (req, res) => {
     const pluck = numPlucker(req.query);
     const limit = pluck('limit', DEFAULT_PAGE_COUNT);
@@ -103,7 +105,7 @@ async function main(): Promise<void> {
   // The app must be started so the user can complete the interactive flow
   installRouter({ app, onSigninComplete: startWorkers });
   app.listen(port, () => {
-    console.log(`Serving on http://localhost:${port}`);
+    console.log(`Visit http://localhost:${port} to start using Yavin.`);
   });
 }
 
