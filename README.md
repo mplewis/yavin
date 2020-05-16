@@ -2,6 +2,83 @@
 
 Scan your email for treachery
 
+# Usage
+
+## Quick Start
+
+### Start Postgres
+
+You'll need to configure a local instance of Postgres that accepts all connections from localhost without a password.
+
+### Get your application credentials
+
+Following these directions will use the Gmail Quickstart system to create a new GCP project, enable the Gmail APIs, and generate credentials for your use. Your project ID will probably start with `quickstart-` in case you want to delete it later.
+
+- Go to the [Gmail Node Quickstart page](https://developers.google.com/gmail/api/quickstart/nodejs)
+- Select **Enable the Gmail API**
+- Select **Web server** as your client type
+- Enter `http://localhost:5000/authenticate` in the **Authorized redirect URIs** field
+- Click **Create**
+- Click **Download Client Configuration** to download the `credentials.json` file
+- Move the `credentials.json` file into this project as `yavin/secrets/credentials` (_does not_ have a file extension)
+
+### Start the app
+
+In a terminal in this project's directory:
+
+```
+# Clone this project
+git clone https://github.com/mplewis/yavin
+# Install all dependencies, including dev dependencies
+yarn install
+# Start the frontend and backend servers
+yarn start
+# If you want the backend server to restart on code changes, use watch mode
+yarn start:watch
+```
+
+Now you'll have a frontend and backend server running. View the frontend server at [localhost:8080](http://localhost:8080). The backend server runs at [localhost:9999](http://localhost:9999).
+
+_TODO: How do you sign into the Gmail account? This feature doesn't exist yet..._
+
+# Development
+
+## Project Layout
+
+### Frontend
+
+The frontend is a Vue project created with [Vue CLI](https://cli.vuejs.org/). It is a standalone project that lives entirely within `frontend`, with a couple of exceptions:
+
+- Linting rules cascade from the parent `.eslintrc`
+- `frontend/types.ts` is symlinked to `src/types.ts`. This is a hack to share backend types (e.g. arrays of email content responses) with the frontend.
+
+This is not the ideal project layout, and if I were to bring this to production readiness, I would use something like [Yarn Workspaces](https://classic.yarnpkg.com/en/docs/workspaces/) to packageize the frontend and backend alongside one another.
+
+The frontend project itself is pretty sparse:
+
+- `src/main.ts`: The entry point for the app. When bundling for production, start here. You can add global Vue plugins (e.g. BootstrapVue) in this file with `Vue#use`.
+- `src/router/index.ts`: The router configuration. Unused right now.
+- `src/store/index.ts`: The VueX store configuration. Unused right now.
+- `src/views/App.vue`: The main view for the app. This embeds the router and is where global styles live. If this project were to progress, this would probably host the navbar.
+- `src/views/Inbox.vue`: The Inbox view. This is where the user spends all their time. Allows the user to page through emails and view their content. This component is responsible for fetching email data from the server and handling pagination.
+- `src/components/Summary.vue`: The left-side list of emails. This displays the sender, subject, and tags for an email.
+- `src/components/Details.vue`: The right-side view of an email's content. This lets the user read emails and find out why Yavin tagged them.
+
+### Backend
+
+# Known Issues
+
+This app is **not** production-ready and should never be deployed to a public system. It is not secure, does not store data securely, and will expose all of your indexed email to anyone who finds it. **Do not deploy this app.**
+
+- No authentication
+- No multi-user support
+- Emails are stored in plaintext at rest
+- No easy way to re-tag previously-tagged emails when tagging rules change
+- No tuning has been done on tagging thresholds
+- `<style>` tags are stripped, but the CSS content remains in email bodies
+- Not yet able to get content out of a body attachment
+- Router is unused, but should be used to hold the view state (which page and email are you looking at?) so that refreshing the page doesn't lose your spot
+
 # TODO
 
 - [x] Set up a database
