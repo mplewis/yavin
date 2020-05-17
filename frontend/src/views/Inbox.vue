@@ -156,13 +156,10 @@ export default class Inbox extends Vue {
   async loadPage(page: number): Promise<void> {
     this.deselect();
     this.page = page;
-    console.log('loading page', page);
     if (this.messages) return;
     const pageData = await loadEmails(page);
-    console.log('assigning to:', page, pageData);
     this.pagesOfMessages[this.page] = pageData;
     this.$set(this.pagesOfMessages, this.page, pageData);
-    console.log('done:', this.pagesOfMessages);
   }
 
   show(i: number): void {
