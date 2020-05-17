@@ -18,10 +18,11 @@
       <b-col cols="4">
         <b-row class="paginator">
           <b-col>
-            <button @click="prevPage" :disabled="!canPrevPage">&laquo;</button
-            ><span class="status"
+            <button @click="prevPage" :disabled="!canPrevPage">&laquo;</button>
+            <span class="status"
               >{{ pageStart + 1 }} to {{ pageEnd }} of {{ messageCount }}</span
-            ><button @click="nextPage" :disabled="!canNextPage">&raquo;</button>
+            >
+            <button @click="nextPage" :disabled="!canNextPage">&raquo;</button>
           </b-col>
         </b-row>
         <span v-if="messages">
@@ -191,33 +192,44 @@ export default class Inbox extends Vue {
 </script>
 
 <style lang="stylus">
-bright-blue = #3498db // Flat UI Colors: Peter River
-dark-blue = #2980b9 // Flat UI Colors: Belize Hole
+bright-blue = #3498db; // Flat UI Colors: Peter River
+dark-blue = #2980b9; // Flat UI Colors: Belize Hole
 
-nav
-  width: 100%
+nav {
+  width: 100%;
+}
 
-.loading
-  font-style: italic
+.loading {
+  font-style: italic;
+}
 
-.paginator
-  text-align: center
-  margin-bottom: 8px
-  .status
-    display: inline-block
-    min-width: 120px
-    margin-left: 8px
-    margin-right: 8px
-  button
-    border: none
-    border-radius: 4px
-    color: white
-    font-weight: 800
-    padding: 3px 10px
-    background: bright-blue
-    &:hover
-      background: dark-blue
-    &:disabled
-      color: rgba(0, 0, 0, 0.2)
-      background-color: rgba(0, 0, 0, 0.1)
+.paginator {
+  text-align: center;
+  margin-bottom: 8px;
+
+  .status {
+    display: inline-block;
+    min-width: 120px;
+    margin-left: 8px;
+    margin-right: 8px;
+  }
+
+  button {
+    border: none;
+    border-radius: 4px;
+    color: white;
+    font-weight: 800;
+    padding: 3px 10px;
+    background: bright-blue;
+
+    &:hover {
+      background: dark-blue;
+    }
+
+    &:disabled {
+      color: rgba(0, 0, 0, 0.2);
+      background-color: rgba(0, 0, 0, 0.1);
+    }
+  }
+}
 </style>
