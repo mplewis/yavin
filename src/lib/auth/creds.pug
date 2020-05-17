@@ -1,0 +1,35 @@
+doctype html
+head
+  link(href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" crossorigin="anonymous")
+  style.
+    body {
+      font-family: Helvetica, sans-serif;
+      width: 600px;
+      margin-top: 40px;
+      margin-bottom: 40px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+body
+  h1 Setup Yavin
+  p Step 1 of 2: Install Google app credentials
+  hr
+
+  p Following these directions will use the Gmail Quickstart system to create a new GCP project, enable the Gmail APIs, and generate credentials for your use. Your project ID will probably start with #[code quickstart-] in case you want to delete it later.
+  ul
+    li Go to #[a(href="https://developers.google.com/gmail/api/quickstart/nodejs") Gmail Node Quickstart]
+    li Select #[strong Enable the Gmail API]
+    li Select #[strong Web server] as your client type
+    li
+      | In the #[strong Authorized redirect URIs] field, enter this value:
+      pre
+        code http://localhost:9999/authenticate
+    li Click #[strong Create]
+    li Click #[strong Download Client Configuration] to download the #[code credentials.json] file
+    li Upload #[code credentials.json] below
+
+  form(action="/save_creds", method="POST", enctype="multipart/form-data")
+    div
+      input(type="file", name="creds.json")
+    div
+      button(class="btn btn-primary" type="submit") Upload

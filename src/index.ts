@@ -1,6 +1,7 @@
 import 'reflect-metadata';
 import cors from 'cors';
 import express, { Express } from 'express';
+import fileUpload from 'express-fileupload';
 import { createConnection } from 'typeorm';
 import Message from './entities/message';
 import { extractPlaintextContent } from './lib/content';
@@ -8,20 +9,26 @@ import { EmailResponse } from './types';
 import { headerPairsToHash } from './lib/util';
 import classify from './workers/classify';
 import persist from './workers/persist';
-import createClient from './auth';
+import { createClient, installRouter } from './lib/auth';
 
 const DEFAULT_PORT = 9999;
 const ORIGIN = 'http://localhost:8080'; // HACK: This only works with the Vue dev server for now
 const WORKER_INTERVAL = 5 * 60 * 1000; // 5m
-const SCOPES = ['https://www.googleapis.com/auth/gmail.modify'];
 
 const DEFAULT_PAGE_COUNT = 10;
+
+let workersStarted = false;
 
 // HACK: Stolen from Express because I can't get it to import
 interface Query {
   [key: string]: string | Query | Array<string | Query>;
 }
 
+/**
+ * Register a worker to run alongside the server.
+ * @param name The worker's name for logs
+ * @param task The actual stuff to call to do the work
+ */
 function work(name: string, task: () => any): void {
   const once = async (): Promise<void> => {
     console.log(`Task ${name} starting`);
@@ -33,6 +40,11 @@ function work(name: string, task: () => any): void {
   setInterval(once, WORKER_INTERVAL);
 }
 
+/**
+ * Pluck single) values from query params and cast them to numbers.
+ * @param query The query for which to pluck values
+ * @param dfault The value to be returned if the key is not present
+ */
 function numPlucker(query: Query) {
   return function pluck(key: string, dfault: number): number {
     const raw = query[key];
@@ -47,6 +59,7 @@ function numPlucker(query: Query) {
 }
 
 function convertMessage(message: Message): EmailResponse {
+  // TODO: return real tags
   const { id, gmailId, data } = message;
   const headersRaw = data.payload?.headers;
   if (!headersRaw) throw new Error(`message lacks headers: ${message.id}`);
@@ -67,9 +80,10 @@ function convertMessage(message: Message): EmailResponse {
   };
 }
 
-function createApp(): Express {
+async function createApp(): Promise<Express> {
   const app = express();
   app.use(cors({ origin: ORIGIN }));
+  app.use(fileUpload());
   app.get('/emails', async (req, res) => {
     const pluck = numPlucker(req.query);
     const limit = pluck('limit', DEFAULT_PAGE_COUNT);
@@ -86,22 +100,26 @@ function createApp(): Express {
 }
 
 async function startWorkers(): Promise<void> {
-  const client = await createClient(SCOPES);
-  work('persist', async () => {
+  if (workersStarted) return;
+  const client = await createClient();
+  if (!client) throw new Error('Cannot create workers; client is not ready');
+  work('persistAndClassify', async () => {
     await persist(client);
-  });
-  work('classify', async () => {
     await classify();
   });
+  workersStarted = true;
 }
 
 async function main(): Promise<void> {
   const port = process.env.PORT || DEFAULT_PORT;
   await createConnection();
+  const app = await createApp();
+  // Start workers right away if the client is ready (has creds and token)
   startWorkers();
-  const app = createApp();
+  // Otherwise, the router will handle it after the user completes the auth flow
+  installRouter({ app, onSigninComplete: startWorkers });
   app.listen(port, () => {
-    console.log(`Serving on http://localhost:${port}`);
+    console.log(`Visit http://localhost:${port} to start using Yavin.`);
   });
 }
 

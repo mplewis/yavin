@@ -10,18 +10,6 @@ Scan your email for treachery
 
 You'll need to configure a local instance of Postgres that accepts all connections from localhost without a password.
 
-### Get your application credentials
-
-Following these directions will use the Gmail Quickstart system to create a new GCP project, enable the Gmail APIs, and generate credentials for your use. Your project ID will probably start with `quickstart-` in case you want to delete it later.
-
-- Go to the [Gmail Node Quickstart page](https://developers.google.com/gmail/api/quickstart/nodejs)
-- Select **Enable the Gmail API**
-- Select **Web server** as your client type
-- Enter `http://localhost:5000/authenticate` in the **Authorized redirect URIs** field
-- Click **Create**
-- Click **Download Client Configuration** to download the `credentials.json` file
-- Move the `credentials.json` file into this project as `yavin/secrets/credentials` (_does not_ have a file extension)
-
 ### Start the app
 
 In a terminal in this project's directory:
@@ -37,9 +25,9 @@ yarn start
 yarn start:watch
 ```
 
-Now you'll have a frontend and backend server running. View the frontend server at [localhost:8080](http://localhost:8080). The backend server runs at [localhost:9999](http://localhost:9999).
+Now you'll have a frontend and backend server running. Go to [localhost:9999](http://localhost:9999) to authorize the app with Google and your Gmail account.
 
-_TODO: How do you sign into the Gmail account? This feature doesn't exist yet..._
+Once the app has the credentials it needs, it will start fetching your messages and send you to your inbox.
 
 # Development
 
