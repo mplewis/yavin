@@ -47,6 +47,12 @@ function countUniqueStrings(arr: string[]): StrNum {
  * @param word The word to be stemmed
  */
 export function stem(word: string): string {
+  // HACK: This is due to us not properly stripping stuff like sourcemappingurl=... and leaving
+  // contents of <style> tags in the email extracted content
+  if (word.length > 100) {
+    console.warn(`Unstemmable word: ${word.slice(0, 40)}...`);
+    return '';
+  }
   return stemmer(word);
 }
 
