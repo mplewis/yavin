@@ -92,7 +92,11 @@ async function createApp(): Promise<Express> {
     const pluck = numPlucker(req.query);
     const limit = pluck('limit', DEFAULT_PAGE_COUNT);
     const offset = pluck('offset', 0);
-    const messages = await Message.find({ take: limit, skip: offset });
+    const messages = await Message.find({
+      order: { receivedAt: 'DESC' },
+      take: limit,
+      skip: offset,
+    });
     const emails = messages.map((m) => convertMessage(m));
     res.json(emails);
   });

@@ -10,6 +10,7 @@ import persist, {
 } from './persist';
 import { Message as GmailMessage, GmailClient } from '../types';
 import Message from '../entities/message';
+import FAKE_RECEIVED_HEADERS from '../../fixtures/fake_received_headers.json';
 
 jest.mock('../gmail/api');
 
@@ -56,6 +57,7 @@ describe('message db tests', () => {
         const message = new Message();
         message.gmailId = id;
         message.data = {};
+        message.receivedAt = new Date();
         return message.save();
       }),
     );
@@ -81,14 +83,14 @@ describe('message db tests', () => {
 
     it('omits messages that have already been persisted', async () => {
       const input: SparseMessage[] = [
-        { id: 'known1' },
-        { id: 'known2' },
-        { id: 'unknown1' },
-        { id: 'unknown2' },
+        { id: 'known1', payload: { headers: FAKE_RECEIVED_HEADERS } },
+        { id: 'known2', payload: { headers: FAKE_RECEIVED_HEADERS } },
+        { id: 'unknown1', payload: { headers: FAKE_RECEIVED_HEADERS } },
+        { id: 'unknown2', payload: { headers: FAKE_RECEIVED_HEADERS } },
       ];
-      expect(await omitKnownMessages(input)).toEqual([
-        { id: 'unknown1' },
-        { id: 'unknown2' },
+      expect((await omitKnownMessages(input)).map((m) => m.id)).toEqual([
+        'unknown1',
+        'unknown2',
       ]);
     });
   });
@@ -96,22 +98,34 @@ describe('message db tests', () => {
   describe('hydrateAll', () => {
     it('hydrates the specified messages', async () => {
       const fakeClient = (null as unknown) as GmailClient;
-      const input: SparseMessage[] = [{ id: '1' }, { id: '2' }, { id: '3' }];
+      const input: SparseMessage[] = [
+        { id: '1', payload: { headers: FAKE_RECEIVED_HEADERS } },
+        { id: '2', payload: { headers: FAKE_RECEIVED_HEADERS } },
+        { id: '3', payload: { headers: FAKE_RECEIVED_HEADERS } },
+      ];
       const result = await hydrateAll(fakeClient, input);
-      expect(result).toEqual([
-        { id: '1', raw: 'hydrated_gmail_message' },
-        { id: '2', raw: 'hydrated_gmail_message' },
-        { id: '3', raw: 'hydrated_gmail_message' },
-      ]);
+      expect(result.map((m) => m.id)).toEqual(['1', '2', '3']);
     });
   });
 
   describe('persistAll', () => {
     it('persists messages to the DB as expected and returns saved row count', async () => {
       const input: GmailMessage[] = [
-        { id: '1', raw: 'hydrated_gmail_message' },
-        { id: '2', raw: 'hydrated_gmail_message' },
-        { id: '3', raw: 'hydrated_gmail_message' },
+        {
+          id: '1',
+          raw: 'hydrated_gmail_message',
+          payload: { headers: FAKE_RECEIVED_HEADERS },
+        },
+        {
+          id: '2',
+          raw: 'hydrated_gmail_message',
+          payload: { headers: FAKE_RECEIVED_HEADERS },
+        },
+        {
+          id: '3',
+          raw: 'hydrated_gmail_message',
+          payload: { headers: FAKE_RECEIVED_HEADERS },
+        },
       ];
       const result = await persistAll(input);
       expect(result).toEqual(3);
@@ -135,6 +149,7 @@ describe('message db tests', () => {
     beforeEach(async () => {
       const message = new Message();
       message.gmailId = '2';
+      message.receivedAt = new Date();
       message.data = {};
       return message.save();
     });

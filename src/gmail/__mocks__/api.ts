@@ -1,4 +1,5 @@
 import { GmailClient, Message } from '../../types';
+import FAKE_RECEIVED_HEADERS from '../../../fixtures/fake_received_headers.json';
 
 export async function listMessages(
   _client: GmailClient,
@@ -15,5 +16,9 @@ export async function getMessage(
   _client: GmailClient,
   id: string,
 ): Promise<Message> {
-  return { id, raw: 'hydrated_gmail_message' };
+  return {
+    id,
+    raw: 'hydrated_gmail_message',
+    payload: { headers: FAKE_RECEIVED_HEADERS },
+  };
 }

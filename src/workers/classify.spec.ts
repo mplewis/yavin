@@ -5,6 +5,7 @@ import classify from './classify';
 import Message from '../entities/message';
 import { encode } from '../lib/util';
 import { parseKeywordLists, List } from '../lib/classify';
+import FAKE_RECEIVED_HEADERS from '../../fixtures/fake_received_headers.json';
 
 const messageFixtures = [
   // Empty; should be unclassifiable
@@ -13,7 +14,10 @@ const messageFixtures = [
   {
     gmailId: 'b',
     data: {
-      payload: { body: { data: encode('IP espionage intellectual property') } },
+      payload: {
+        headers: FAKE_RECEIVED_HEADERS,
+        body: { data: encode('IP espionage intellectual property') },
+      },
     },
   },
   // should be classified as "fraud"
@@ -21,6 +25,7 @@ const messageFixtures = [
     gmailId: 'c',
     data: {
       payload: {
+        headers: FAKE_RECEIVED_HEADERS,
         body: { data: encode('pyramid Ponzi loophole contract law') },
       },
     },
@@ -29,7 +34,10 @@ const messageFixtures = [
   {
     gmailId: 'd',
     data: {
-      payload: { body: { data: encode('under the table alliance agreement') } },
+      payload: {
+        headers: FAKE_RECEIVED_HEADERS,
+        body: { data: encode('under the table alliance agreement') },
+      },
     },
   },
 ];
@@ -40,6 +48,7 @@ function createMessages(): Promise<Message[]> {
       const m = new Message();
       m.gmailId = gmailId;
       m.data = data;
+      m.receivedAt = new Date();
       await m.save();
       return m;
     }),

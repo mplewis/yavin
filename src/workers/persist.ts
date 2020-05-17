@@ -1,7 +1,7 @@
 import { getMessage, listMessages } from '../gmail/api';
 import { GmailClient, Message as GmailMessage } from '../types';
 import Message from '../entities/message';
-import { keepTruthy } from '../lib/util';
+import { keepTruthy, headerPairsToHash } from '../lib/util';
 
 /** The Gmail search query to get messages in the user's inbox. */
 const IN_INBOX_QUERY = 'in:inbox';
@@ -68,6 +68,29 @@ export async function hydrateAll(
 }
 
 /**
+ * Parse the Received date from a message.
+ * @param message The message with headers to parse
+ */
+export function parseReceivedHeader(message: GmailMessage): Date {
+  const raw = message.payload?.headers;
+  if (!raw) throw new Error('Message has no headers, cannot parse date');
+  const headers = headerPairsToHash(raw);
+
+  const receivedRaw = headers.Received;
+  const matcher = /;\s+(.+)/;
+  const match = receivedRaw.match(matcher);
+  if (!match) throw new Error(`Cannot parse date: ${receivedRaw}`);
+  const parsed = match[1];
+
+  const received = new Date(parsed);
+  if (received.toString() === 'Invalid Date') {
+    throw new Error(`Message date is invalid: ${receivedRaw}`);
+  }
+
+  return received;
+}
+
+/**
  * Save Gmail messages to the database and return the number of successful saves.
  * @param messages The messages to be saved to the database
  */
@@ -77,6 +100,7 @@ export async function persistAll(messages: GmailMessage[]): Promise<number> {
     if (!message.id) throw new Error('message lacks id');
     row.gmailId = message.id;
     row.data = message;
+    row.receivedAt = parseReceivedHeader(message);
     await row.save();
     return true;
   });
