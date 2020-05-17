@@ -92,11 +92,11 @@ async function fetchJsonRetry(url: string): Promise<any> {
   /* eslint-enable no-await-in-loop */
 }
 
-async function getPageCount(): Promise<number> {
+async function loadPageCount(): Promise<number> {
   return fetchJsonRetry('//localhost:9999/emails/count');
 }
 
-async function getEmails(page: number): Promise<EmailResponse[]> {
+async function loadEmails(page: number): Promise<EmailResponse[]> {
   const url = urlWithQs('//localhost:9999/emails', {
     offset: page * PAGE_SIZE,
     limit: PAGE_SIZE,
@@ -152,7 +152,7 @@ export default class Inbox extends Vue {
   }
 
   async mounted(): Promise<void> {
-    this.messageCount = await getPageCount();
+    this.messageCount = await loadPageCount();
     this.pageCount = Math.ceil(this.messageCount / PAGE_SIZE);
     await this.loadPage(this.page);
   }
@@ -162,7 +162,7 @@ export default class Inbox extends Vue {
     this.page = page;
     console.log('loading page', page);
     if (this.messages) return;
-    const pageData = await getEmails(page);
+    const pageData = await loadEmails(page);
     console.log('assigning to:', page, pageData);
     this.pagesOfMessages[this.page] = pageData;
     this.$set(this.pagesOfMessages, this.page, pageData);
