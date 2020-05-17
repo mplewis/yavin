@@ -137,11 +137,6 @@ export default class Inbox extends Vue {
   }
 
   get messages(): EmailResponse[] {
-    console.log({
-      all: this.pagesOfMessages,
-      data: this.pagesOfMessages[this.page],
-      page: this.page,
-    });
     return this.pagesOfMessages[this.page];
   }
 
