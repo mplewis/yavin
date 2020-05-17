@@ -110,6 +110,17 @@ describe('message db tests', () => {
       );
     });
 
+    it('even parses weird Received headers', () => {
+      const value = 'from MTAzMzg1MDM (unknown) by geopod-ismtpd-5-0 (SG) with '
+        + 'HTTP id iz6CugXqRImzFy0ExSSbJQ Mon, 20 Apr 2020 21:17:19.253 +0000 (UTC)';
+      const msg = ({
+        payload: { headers: [{ name: 'Received', value }] },
+      } as unknown) as GmailMessage;
+      expect(parseReceivedHeader(msg)).toMatchInlineSnapshot(
+        '2020-04-20T21:17:19.253Z',
+      );
+    });
+
     it('throws when headers are missing', () => {
       const msg = ({} as unknown) as GmailMessage;
       expect(() => parseReceivedHeader(msg)).toThrowError(

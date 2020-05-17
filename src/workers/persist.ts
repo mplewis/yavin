@@ -77,7 +77,7 @@ export function parseReceivedHeader(message: GmailMessage): Date {
   const headers = headerPairsToHash(raw);
 
   const receivedRaw = headers.Received;
-  const matcher = /;\s*(.+)/;
+  const matcher = /with \S+ id \S+;?\s*(.+)/;
   const match = receivedRaw.match(matcher);
   if (!match) throw new Error(`Cannot parse date: ${receivedRaw}`);
   const parsed = match[1];
