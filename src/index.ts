@@ -9,8 +9,7 @@ import { EmailResponse } from './types';
 import { headerPairsToHash } from './lib/util';
 import classify from './workers/classify';
 import persist from './workers/persist';
-import createClient from './auth';
-import installRouter from './auth/install_router';
+import { createClient, installRouter } from './auth';
 
 const DEFAULT_PORT = 9999;
 const ORIGIN = 'http://localhost:8080'; // HACK: This only works with the Vue dev server for now

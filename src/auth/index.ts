@@ -5,6 +5,7 @@ import { UploadedFile } from 'express-fileupload';
 import { google } from 'googleapis';
 import { Credentials as GoogleAccessToken } from 'google-auth-library';
 import Storage from '../lib/storage';
+import { GmailClient } from '../types';
 
 const storage = new Storage('./secrets');
 
@@ -81,10 +82,37 @@ async function exchangeCodeForToken(
 }
 
 /**
+ * Create a Gmail client and initialize it with a valid token.
+ */
+export async function createClient(): Promise<GmailClient | undefined> {
+  const credsLookup = await storage.get('credentials');
+  if (!credsLookup.found) {
+    console.error('GmailClient could not find app credentials');
+    return undefined;
+  }
+
+  const token = await storage.get('token');
+  if (!token.found) {
+    console.error('GmailClient could not find user token');
+    return undefined;
+  }
+
+  const { web: c }: Credentials = credsLookup.value;
+  const client = new google.auth.OAuth2(
+    c.client_id,
+    c.client_secret,
+    c.redirect_uris[0],
+  );
+  client.setCredentials(token.value);
+  const gmailClient = google.gmail({ version: 'v1', auth: client });
+  return gmailClient;
+}
+
+/**
  * Install the auth routes into the core app.
  * @param app The Express app to be modified with new routes
  */
-export default async function installRouter({
+export async function installRouter({
   app,
   onSigninComplete,
 }: {
