@@ -7,15 +7,19 @@ import Message from './entities/message';
 import { extractPlaintextContent } from './lib/content';
 import { EmailResponse } from './types';
 import { headerPairsToHash } from './lib/util';
-import classify from './workers/classify';
+import classify, { RAW_KEYWORDS_YAML } from './workers/classify';
 import persist from './workers/persist';
 import { createClient, installRouter } from './lib/auth';
+import { parseKeywordLists } from './lib/classify';
 
 const DEFAULT_PORT = 9999;
 const ORIGIN = 'http://localhost:8080'; // HACK: This only works with the Vue dev server for now
 const WORKER_INTERVAL = 5 * 60 * 1000; // 5m
 
 const DEFAULT_PAGE_COUNT = 10;
+
+// HACK: This import is silly. Revisit it
+const { keywords: KEYWORDS } = parseKeywordLists(RAW_KEYWORDS_YAML);
 
 let workersStarted = false;
 
@@ -95,6 +99,9 @@ async function createApp(): Promise<Express> {
   app.get('/emails/count', async (_req, res) => {
     const count = await Message.count();
     res.json(count);
+  });
+  app.get('/keywords', async (_req, res) => {
+    res.json(KEYWORDS);
   });
   return app;
 }
