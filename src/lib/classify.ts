@@ -2,7 +2,7 @@
 import '../types/wink-porter2-stemmer';
 import stemmer from 'wink-porter2-stemmer';
 import yaml from 'js-yaml';
-import { StrNum } from '../types';
+import { StrNum, Keywords } from '../types';
 
 /** A list of keywords to be used for analyzing and tagging an email. */
 export type List = {
@@ -15,16 +15,6 @@ type BodyWithWordCounts = {
   body: string;
   words: string[];
   wordCounts: { [word: string]: number };
-};
-
-type Keywords = { [name: string]: KeywordDetails };
-/**
- * The values for each key in the keywords file.
- */
-type KeywordDetails = {
-  threshold: number;
-  description: string;
-  keywords: string[];
 };
 
 /**

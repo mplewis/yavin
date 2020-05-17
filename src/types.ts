@@ -23,3 +23,16 @@ export interface EmailResponse {
   body?: string;
   data: Message;
 }
+
+/**
+ * The list of keywords used to analyze emails.
+ */
+export type Keywords = { [name: string]: KeywordDetails };
+/**
+ * The values for each type of keyword.
+ */
+export type KeywordDetails = {
+  threshold: number;
+  description: string;
+  keywords: string[];
+};
