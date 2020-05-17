@@ -4,8 +4,8 @@ import { join } from 'path';
 import { UploadedFile } from 'express-fileupload';
 import { google } from 'googleapis';
 import { Credentials as GoogleAccessToken } from 'google-auth-library';
-import Storage from '../lib/storage';
-import { GmailClient } from '../types';
+import Storage from '../storage';
+import { GmailClient } from '../../types';
 
 const storage = new Storage('./secrets');
 
