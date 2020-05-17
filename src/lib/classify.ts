@@ -17,6 +17,7 @@ type BodyWithWordCounts = {
   wordCounts: { [word: string]: number };
 };
 
+type Keywords = { [name: string]: KeywordDetails };
 /**
  * The values for each key in the keywords file.
  */
@@ -96,10 +97,12 @@ function wordOrPhrase(item: string): 'word' | 'phrase' {
  * Parse the keywords YAML into Lists.
  * @param rawYaml The raw YAML from a keywords file
  */
-export function parseKeywordLists(rawYaml: string): List[] {
-  const rawObj: { [name: string]: KeywordDetails } = yaml.safeLoad(rawYaml);
+export function parseKeywordLists(
+  rawYaml: string,
+): { keywords: Keywords; lists: List[] } {
+  const keywords: Keywords = yaml.safeLoad(rawYaml);
   const lists: List[] = [];
-  Object.entries(rawObj).forEach(([name, details]) => {
+  Object.entries(keywords).forEach(([name, details]) => {
     const { threshold } = details;
     const words: string[] = [];
     const phrases: string[] = [];
@@ -118,7 +121,7 @@ export function parseKeywordLists(rawYaml: string): List[] {
       phrases,
     });
   });
-  return lists;
+  return { keywords, lists };
 }
 
 /**

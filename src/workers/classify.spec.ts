@@ -69,17 +69,17 @@ describe('message db tests', () => {
   });
 
   describe('classify', () => {
-    let keywordLists: List[];
+    let lists: List[];
     beforeEach(async () => {
       const rawYaml = readFileSync(
         join('fixtures', 'keywords.yaml'),
       ).toString();
-      keywordLists = parseKeywordLists(rawYaml);
+      lists = parseKeywordLists(rawYaml).lists;
       await createMessages();
     });
 
     it('classifies messages properly', async () => {
-      await classify(keywordLists);
+      await classify(lists);
       const empty = await Message.findOneOrFail({ gmailId: 'a' });
       const theft = await Message.findOneOrFail({ gmailId: 'b' });
       const fraud = await Message.findOneOrFail({ gmailId: 'c' });

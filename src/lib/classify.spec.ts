@@ -118,49 +118,81 @@ describe('parseKeywordLists', () => {
       await readFile(join('fixtures', 'keywords.yaml'))
     ).toString();
     expect(parseKeywordLists(rawYaml)).toMatchInlineSnapshot(`
-      Array [
-        Object {
-          "name": "theft",
-          "phrases": Array [
-            "intellectual property",
-          ],
-          "threshold": 0.1,
-          "words": Array [
-            "ip",
-            "espionag",
-          ],
+      Object {
+        "keywords": Object {
+          "conspiracy": Object {
+            "description": "These suggest two or more people are conspirators.",
+            "keywords": Array [
+              "alliance",
+              "agreement",
+              "under the table",
+            ],
+            "threshold": 0.1,
+          },
+          "fraud": Object {
+            "description": "These suggest someone is committing some kind of fraud.",
+            "keywords": Array [
+              "pyramid",
+              "Ponzi",
+              "loophole",
+              "contract law",
+            ],
+            "threshold": 0.1,
+          },
+          "theft": Object {
+            "description": "These suggest someone is stealing something.",
+            "keywords": Array [
+              "IP",
+              "espionage",
+              "Intellectual Property",
+            ],
+            "threshold": 0.1,
+          },
         },
-        Object {
-          "name": "fraud",
-          "phrases": Array [
-            "contract law",
-          ],
-          "threshold": 0.1,
-          "words": Array [
-            "pyramid",
-            "ponzi",
-            "loophol",
-          ],
-        },
-        Object {
-          "name": "conspiracy",
-          "phrases": Array [
-            "under the table",
-          ],
-          "threshold": 0.1,
-          "words": Array [
-            "allianc",
-            "agreement",
-          ],
-        },
-      ]
+        "lists": Array [
+          Object {
+            "name": "theft",
+            "phrases": Array [
+              "intellectual property",
+            ],
+            "threshold": 0.1,
+            "words": Array [
+              "ip",
+              "espionag",
+            ],
+          },
+          Object {
+            "name": "fraud",
+            "phrases": Array [
+              "contract law",
+            ],
+            "threshold": 0.1,
+            "words": Array [
+              "pyramid",
+              "ponzi",
+              "loophol",
+            ],
+          },
+          Object {
+            "name": "conspiracy",
+            "phrases": Array [
+              "under the table",
+            ],
+            "threshold": 0.1,
+            "words": Array [
+              "allianc",
+              "agreement",
+            ],
+          },
+        ],
+      }
     `);
   });
 });
 
 describe('with a document and keyword list', () => {
   const rawYaml = readFileSync(join('fixtures', 'keywords.yaml')).toString();
-  const keywordLists = parseKeywordLists(rawYaml);
+  const keywordLists = parseKeywordLists(rawYaml).lists;
   const body = `
     Hey, did you perform that espionage I asked you about?
     The boss is asking for all the IP you stole. He wants the intellectual property badly.
@@ -239,7 +271,7 @@ describe('with the real keyword list and real emails', () => {
   const rawKeywords = readFileSync(
     join('resources', 'keywords.yaml'),
   ).toString();
-  const keywordLists = parseKeywordLists(rawKeywords);
+  const keywordLists = parseKeywordLists(rawKeywords).lists;
 
   type Email = { path: string; from: string; subject: string; body: string };
   const emailPaths: string[] = glob.sync('fixtures/emails/**/*.yaml');

@@ -17,8 +17,7 @@ export type MessagePartBody = GmailV1.Schema$MessagePartBody;
 export interface EmailResponse {
   id: number;
   gmailId: string;
-  tags: string[];
-  suspicion: number;
+  tags?: string[];
   from: string;
   subject: string;
   body?: string;
