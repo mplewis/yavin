@@ -20,7 +20,10 @@ body
     li Go to #[a(href="https://developers.google.com/gmail/api/quickstart/nodejs") Gmail Node Quickstart]
     li Select #[strong Enable the Gmail API]
     li Select #[strong Web server] as your client type
-    li Enter #[code http://localhost:5000/authenticate] in the #[strong Authorized redirect URIs] field
+    li
+      | In the #[strong Authorized redirect URIs] field, enter this value:
+      pre
+        code http://localhost:9999/authenticate
     li Click #[strong Create]
     li Click #[strong Download Client Configuration] to download the #[code credentials.json] file
     li Upload #[code credentials.json] below

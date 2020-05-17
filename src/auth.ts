@@ -2,7 +2,10 @@ import { google } from 'googleapis';
 import { GmailClient } from './types';
 import Storage from './lib/storage';
 
-const storage = new Storage('./ secrets');
+const storage = new Storage('./secrets');
+
+// TODO: This file doesn't make much sense anymore now that most of this functionality is in the
+// auth router. Move its functionality there.
 
 /**
  * Create a Gmail client with the given credentials and initialize it with a valid token.
@@ -26,7 +29,7 @@ export default async function createClient(): Promise<GmailClient | undefined> {
   }
 
   const {
-    installed: { client_secret: cs, client_id: cid, redirect_uris: ris },
+    web: { client_secret: cs, client_id: cid, redirect_uris: ris },
   } = credentials.value;
   const client = new google.auth.OAuth2(cid, cs, ris[0]);
   client.setCredentials(token.value);

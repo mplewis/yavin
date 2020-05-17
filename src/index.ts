@@ -18,11 +18,18 @@ const WORKER_INTERVAL = 5 * 60 * 1000; // 5m
 
 const DEFAULT_PAGE_COUNT = 10;
 
+let workersStarted = false;
+
 // HACK: Stolen from Express because I can't get it to import
 interface Query {
   [key: string]: string | Query | Array<string | Query>;
 }
 
+/**
+ * Register a worker to run alongside the server.
+ * @param name The worker's name for logs
+ * @param task The actual stuff to call to do the work
+ */
 function work(name: string, task: () => any): void {
   const once = async (): Promise<void> => {
     console.log(`Task ${name} starting`);
@@ -34,6 +41,11 @@ function work(name: string, task: () => any): void {
   setInterval(once, WORKER_INTERVAL);
 }
 
+/**
+ * Pluck single) values from query params and cast them to numbers.
+ * @param query The query for which to pluck values
+ * @param dfault The value to be returned if the key is not present
+ */
 function numPlucker(query: Query) {
   return function pluck(key: string, dfault: number): number {
     const raw = query[key];
@@ -48,6 +60,7 @@ function numPlucker(query: Query) {
 }
 
 function convertMessage(message: Message): EmailResponse {
+  // TODO: return real tags
   const { id, gmailId, data } = message;
   const headersRaw = data.payload?.headers;
   if (!headersRaw) throw new Error(`message lacks headers: ${message.id}`);
@@ -88,21 +101,23 @@ async function createApp(): Promise<Express> {
 }
 
 async function startWorkers(): Promise<void> {
+  if (workersStarted) return;
   const client = await createClient();
   if (!client) throw new Error('Cannot create workers; client is not ready');
-  work('persist', async () => {
+  work('persistAndClassify', async () => {
     await persist(client);
-  });
-  work('classify', async () => {
     await classify();
   });
+  workersStarted = true;
 }
 
 async function main(): Promise<void> {
   const port = process.env.PORT || DEFAULT_PORT;
   await createConnection();
   const app = await createApp();
-  // The app must be started so the user can complete the interactive flow
+  // Start workers right away if the client is ready (has creds and token)
+  startWorkers();
+  // Otherwise, the router will handle it after the user completes the auth flow
   installRouter({ app, onSigninComplete: startWorkers });
   app.listen(port, () => {
     console.log(`Visit http://localhost:${port} to start using Yavin.`);
