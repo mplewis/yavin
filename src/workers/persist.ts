@@ -67,6 +67,18 @@ export async function hydrateAll(
   );
 }
 
+function tryManyMatchers(
+  s: string,
+  matchers: RegExp[],
+): RegExpMatchArray | null {
+  // eslint-disable-next-line no-restricted-syntax
+  for (const matcher of matchers) {
+    const match = s.match(matcher);
+    if (match) return match;
+  }
+  return null;
+}
+
 /**
  * Parse the Received date from a message.
  * @param message The message with headers to parse
@@ -77,8 +89,10 @@ export function parseReceivedHeader(message: GmailMessage): Date {
   const headers = headerPairsToHash(raw);
 
   const receivedRaw = headers.Received;
-  const matcher = /with \S+ id \S+;?\s*(.+)/;
-  const match = receivedRaw.match(matcher);
+  const match = tryManyMatchers(receivedRaw, [
+    /with \S+ id \S+;?\s*(.+)/,
+    /;\s*(.+)/,
+  ]);
   if (!match) throw new Error(`Cannot parse date: ${receivedRaw}`);
   const parsed = match[1];
 
