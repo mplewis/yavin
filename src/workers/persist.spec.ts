@@ -7,6 +7,7 @@ import persist, {
   omitKnownMessages,
   hydrateAll,
   persistAll,
+  parseReceivedHeader,
 } from './persist';
 import { Message as GmailMessage, GmailClient } from '../types';
 import Message from '../entities/message';
@@ -90,6 +91,77 @@ describe('message db tests', () => {
         { id: 'unknown1' },
         { id: 'unknown2' },
       ]);
+    });
+  });
+
+  describe('parseReceivedHeader', () => {
+    function makeFakeMsg({
+      date,
+      value,
+    }: {
+      date?: string;
+      value?: string;
+    }): GmailMessage {
+      if (value) return { payload: { headers: [{ name: 'Received', value }] } };
+      return makeFakeMsg({
+        value: `by 127.0.0.1 with SMTP id deadbeefcafe;        ${date}`,
+      });
+    }
+
+    it('parses Received headers as expected', () => {
+      const msg = makeFakeMsg({
+        date: 'Fri, 17 Apr 2020 18:02:07 -0700 (PDT)',
+      });
+      expect(parseReceivedHeader(msg)).toMatchInlineSnapshot(
+        '2020-04-18T01:02:07.000Z',
+      );
+    });
+
+    it('even parses Received headers missing semicolons', () => {
+      const value = 'from MTAzMzg1MDM (unknown) by geopod-ismtpd-5-0 (SG) with '
+        + 'HTTP id iz6CugXqRImzFy0ExSSbJQ Mon, 20 Apr 2020 21:17:19.253 +0000 (UTC)';
+      const msg = makeFakeMsg({ value });
+      expect(parseReceivedHeader(msg)).toMatchInlineSnapshot(
+        '2020-04-20T21:17:19.253Z',
+      );
+    });
+
+    it('even parses long Received headers that rely on semicolons', () => {
+      const value = `
+from a13-53.smtp-out.amazonses.com (a13-53.smtp-out.amazonses.com [54.240.13.53])
+(using TLSv1.2 with cipher ECDHE-RSA-AES128-SHA256 (128/128 bits))
+(No client certificate requested) by mx-fwd-1.nearlyfreespeech.net (Postfix)
+with ESMTPS for <matt@mplewis.com>; Sun, 17 May 2020 21:14:37 +0000 (UTC)
+      `
+        .trim()
+        .split('\n')
+        .join(' ');
+      const msg = makeFakeMsg({ value });
+      expect(parseReceivedHeader(msg)).toMatchInlineSnapshot(
+        '2020-05-17T21:14:37.000Z',
+      );
+    });
+
+    it('throws when headers are missing', () => {
+      const msg: GmailMessage = {};
+      expect(() => parseReceivedHeader(msg)).toThrowError(
+        /Message has no headers/,
+      );
+    });
+
+    it('throws when Received header is mangled', () => {
+      const value = 'Fri, 17 Apr 2020 18:02:07 -0700 (PDT)'; // no timestamp prefix
+      const msg = makeFakeMsg({ value });
+      expect(() => parseReceivedHeader(msg)).toThrowError(/Cannot parse date/);
+    });
+
+    it('throws when Received date is invalid', () => {
+      const msg = makeFakeMsg({
+        date: 'Blursday, 32 Juneteenth 2020 18:02:07 -0700 (PDT)',
+      });
+      expect(() => parseReceivedHeader(msg)).toThrowError(
+        /Message date is invalid/,
+      );
     });
   });
 
