@@ -59,8 +59,9 @@ function numPlucker(query: Query) {
 }
 
 function convertMessage(message: Message): EmailResponse {
-  // TODO: return real tags
-  const { id, gmailId, data } = message;
+  const {
+    id, gmailId, data, tags,
+  } = message;
   const headersRaw = data.payload?.headers;
   if (!headersRaw) throw new Error(`message lacks headers: ${message.id}`);
   const headers = headerPairsToHash(headersRaw);
@@ -75,8 +76,7 @@ function convertMessage(message: Message): EmailResponse {
     body,
     from,
     subject,
-    tags: ['fake-tag'],
-    suspicion: 0.01,
+    tags,
   };
 }
 
