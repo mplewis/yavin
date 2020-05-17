@@ -58,6 +58,7 @@ import { stringify } from 'query-string';
 import { EmailResponse } from '../types';
 import Summary from '../components/Summary.vue';
 import Details from '../components/Details.vue';
+import { Keywords } from '../../../src/types';
 
 /**
  * Number of times to retry getting emails
@@ -93,6 +94,11 @@ async function fetchJsonRetry(url: string): Promise<any> {
   /* eslint-enable no-await-in-loop */
 }
 
+async function loadKeywords(): Promise<Keywords> {
+  const resp = await fetchJsonRetry('//localhost:9999/keywords');
+  return resp.json();
+}
+
 async function loadPageCount(): Promise<number> {
   return fetchJsonRetry('//localhost:9999/emails/count');
 }
@@ -110,6 +116,8 @@ async function loadEmails(page: number): Promise<EmailResponse[]> {
   components: { Summary, Details },
 })
 export default class Inbox extends Vue {
+  keywords: Keywords = {};
+
   pagesOfMessages: EmailResponse[][] = [];
 
   currMessageIndex: number | null = null;
@@ -148,6 +156,9 @@ export default class Inbox extends Vue {
   }
 
   async mounted(): Promise<void> {
+    loadKeywords().then((keywords) => {
+      this.keywords = keywords;
+    });
     this.messageCount = await loadPageCount();
     this.pageCount = Math.ceil(this.messageCount / PAGE_SIZE);
     await this.loadPage(this.page);
