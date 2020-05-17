@@ -7,6 +7,7 @@ import persist, {
   omitKnownMessages,
   hydrateAll,
   persistAll,
+  parseReceivedHeader,
 } from './persist';
 import { Message as GmailMessage, GmailClient } from '../types';
 import Message from '../entities/message';
@@ -92,6 +93,45 @@ describe('message db tests', () => {
         'unknown1',
         'unknown2',
       ]);
+    });
+  });
+
+  describe('parseReceivedHeader', () => {
+    function makeFakeMsg(date: string): GmailMessage {
+      const value = `by 127.0.0.1 with SMTP id deadbeefcafe;        ${date}`;
+      const fake = { payload: { headers: [{ name: 'Received', value }] } };
+      return (fake as unknown) as GmailMessage;
+    }
+
+    it('parses Received headers as expected', () => {
+      const msg = makeFakeMsg('Fri, 17 Apr 2020 18:02:07 -0700 (PDT)');
+      expect(parseReceivedHeader(msg)).toMatchInlineSnapshot(
+        '2020-04-18T01:02:07.000Z',
+      );
+    });
+
+    it('throws when headers are missing', () => {
+      const msg = ({} as unknown) as GmailMessage;
+      expect(() => parseReceivedHeader(msg)).toThrowError(
+        /Message has no headers/,
+      );
+    });
+
+    it('throws when Received header is mangled', () => {
+      const value = 'Fri, 17 Apr 2020 18:02:07 -0700 (PDT)'; // no ; to denote start of timestamp
+      const msg = ({
+        payload: { headers: [{ name: 'Received', value }] },
+      } as unknown) as GmailMessage;
+      expect(() => parseReceivedHeader(msg)).toThrowError(/Cannot parse date/);
+    });
+
+    it('throws when Received date is invalid', () => {
+      const msg = makeFakeMsg(
+        'Blursday, 32 Juneteenth 2020 18:02:07 -0700 (PDT)',
+      );
+      expect(() => parseReceivedHeader(msg)).toThrowError(
+        /Message date is invalid/,
+      );
     });
   });
 
