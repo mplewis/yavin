@@ -23,7 +23,7 @@
     "test:jest": "scripts/use_db.js test && jest --coverage --runInBand",
     "test:lint": "eslint src/**/*.ts",
     "test:frontend": "scripts/test_frontend.sh",
-    "test:watch": "scripts/use_db.js test && jest --watch",
+    "test:watch": "scripts/use_db.js test && jest --watch --runInBand",
     "doc": "run-s doc:html && open-cli build/docs/index.html",
     "doc:html": "typedoc src/ --exclude **/*.spec.ts --target ES6 --mode file --out build/docs",
     "doc:json": "typedoc src/ --exclude **/*.spec.ts --target ES6 --mode file --json build/docs/typedoc.json",

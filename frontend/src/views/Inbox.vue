@@ -18,10 +18,11 @@
       <b-col cols="4">
         <b-row class="paginator">
           <b-col>
-            <button @click="prevPage" :disabled="!canPrevPage">&laquo;</button
-            ><span class="status"
+            <button @click="prevPage" :disabled="!canPrevPage">&laquo;</button>
+            <span class="status"
               >{{ pageStart + 1 }} to {{ pageEnd }} of {{ messageCount }}</span
-            ><button @click="nextPage" :disabled="!canNextPage">&raquo;</button>
+            >
+            <button @click="nextPage" :disabled="!canNextPage">&raquo;</button>
           </b-col>
         </b-row>
         <span v-if="messages">
@@ -42,7 +43,7 @@
         </b-row>
       </b-col>
       <b-col cols="8">
-        <Details v-if="message" :details="message" />
+        <Details v-if="message" :keywords="keywords" :details="message" />
         <p v-else>Select a message to view.</p>
       </b-col>
     </b-row>
@@ -57,6 +58,7 @@ import { stringify } from 'query-string';
 import { EmailResponse } from '../types';
 import Summary from '../components/Summary.vue';
 import Details from '../components/Details.vue';
+import { Keywords } from '../../../src/types';
 
 /**
  * Number of times to retry getting emails
@@ -92,11 +94,15 @@ async function fetchJsonRetry(url: string): Promise<any> {
   /* eslint-enable no-await-in-loop */
 }
 
-async function getPageCount(): Promise<number> {
+async function loadKeywords(): Promise<Keywords> {
+  return fetchJsonRetry('//localhost:9999/keywords');
+}
+
+async function loadPageCount(): Promise<number> {
   return fetchJsonRetry('//localhost:9999/emails/count');
 }
 
-async function getEmails(page: number): Promise<EmailResponse[]> {
+async function loadEmails(page: number): Promise<EmailResponse[]> {
   const url = urlWithQs('//localhost:9999/emails', {
     offset: page * PAGE_SIZE,
     limit: PAGE_SIZE,
@@ -109,6 +115,8 @@ async function getEmails(page: number): Promise<EmailResponse[]> {
   components: { Summary, Details },
 })
 export default class Inbox extends Vue {
+  keywords: Keywords = {};
+
   pagesOfMessages: EmailResponse[][] = [];
 
   currMessageIndex: number | null = null;
@@ -136,11 +144,6 @@ export default class Inbox extends Vue {
   }
 
   get messages(): EmailResponse[] {
-    console.log({
-      all: this.pagesOfMessages,
-      data: this.pagesOfMessages[this.page],
-      page: this.page,
-    });
     return this.pagesOfMessages[this.page];
   }
 
@@ -152,7 +155,10 @@ export default class Inbox extends Vue {
   }
 
   async mounted(): Promise<void> {
-    this.messageCount = await getPageCount();
+    loadKeywords().then((keywords) => {
+      this.keywords = keywords;
+    });
+    this.messageCount = await loadPageCount();
     this.pageCount = Math.ceil(this.messageCount / PAGE_SIZE);
     await this.loadPage(this.page);
   }
@@ -160,13 +166,10 @@ export default class Inbox extends Vue {
   async loadPage(page: number): Promise<void> {
     this.deselect();
     this.page = page;
-    console.log('loading page', page);
     if (this.messages) return;
-    const pageData = await getEmails(page);
-    console.log('assigning to:', page, pageData);
+    const pageData = await loadEmails(page);
     this.pagesOfMessages[this.page] = pageData;
     this.$set(this.pagesOfMessages, this.page, pageData);
-    console.log('done:', this.pagesOfMessages);
   }
 
   show(i: number): void {
@@ -191,33 +194,44 @@ export default class Inbox extends Vue {
 </script>
 
 <style lang="stylus">
-bright-blue = #3498db // Flat UI Colors: Peter River
-dark-blue = #2980b9 // Flat UI Colors: Belize Hole
+bright-blue = #3498db; // Flat UI Colors: Peter River
+dark-blue = #2980b9; // Flat UI Colors: Belize Hole
 
-nav
-  width: 100%
+nav {
+  width: 100%;
+}
 
-.loading
-  font-style: italic
+.loading {
+  font-style: italic;
+}
 
-.paginator
-  text-align: center
-  margin-bottom: 8px
-  .status
-    display: inline-block
-    min-width: 120px
-    margin-left: 8px
-    margin-right: 8px
-  button
-    border: none
-    border-radius: 4px
-    color: white
-    font-weight: 800
-    padding: 3px 10px
-    background: bright-blue
-    &:hover
-      background: dark-blue
-    &:disabled
-      color: rgba(0, 0, 0, 0.2)
-      background-color: rgba(0, 0, 0, 0.1)
+.paginator {
+  text-align: center;
+  margin-bottom: 8px;
+
+  .status {
+    display: inline-block;
+    min-width: 120px;
+    margin-left: 8px;
+    margin-right: 8px;
+  }
+
+  button {
+    border: none;
+    border-radius: 4px;
+    color: white;
+    font-weight: 800;
+    padding: 3px 10px;
+    background: bright-blue;
+
+    &:hover {
+      background: dark-blue;
+    }
+
+    &:disabled {
+      color: rgba(0, 0, 0, 0.2);
+      background-color: rgba(0, 0, 0, 0.1);
+    }
+  }
+}
 </style>

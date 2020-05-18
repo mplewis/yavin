@@ -11,6 +11,7 @@ import persist, {
 } from './persist';
 import { Message as GmailMessage, GmailClient } from '../types';
 import Message from '../entities/message';
+import FAKE_RECEIVED_HEADERS from '../../fixtures/fake_received_headers.json';
 
 jest.mock('../gmail/api');
 
@@ -57,6 +58,7 @@ describe('message db tests', () => {
         const message = new Message();
         message.gmailId = id;
         message.data = {};
+        message.receivedAt = new Date();
         return message.save();
       }),
     );
@@ -82,14 +84,14 @@ describe('message db tests', () => {
 
     it('omits messages that have already been persisted', async () => {
       const input: SparseMessage[] = [
-        { id: 'known1' },
-        { id: 'known2' },
-        { id: 'unknown1' },
-        { id: 'unknown2' },
+        { id: 'known1', payload: { headers: FAKE_RECEIVED_HEADERS } },
+        { id: 'known2', payload: { headers: FAKE_RECEIVED_HEADERS } },
+        { id: 'unknown1', payload: { headers: FAKE_RECEIVED_HEADERS } },
+        { id: 'unknown2', payload: { headers: FAKE_RECEIVED_HEADERS } },
       ];
-      expect(await omitKnownMessages(input)).toEqual([
-        { id: 'unknown1' },
-        { id: 'unknown2' },
+      expect((await omitKnownMessages(input)).map((m) => m.id)).toEqual([
+        'unknown1',
+        'unknown2',
       ]);
     });
   });
@@ -102,7 +104,10 @@ describe('message db tests', () => {
       date?: string;
       value?: string;
     }): GmailMessage {
-      if (value) return { payload: { headers: [{ name: 'Received', value }] } };
+      if (value) {
+        const v = value.trim().split('\n').join();
+        return { payload: { headers: [{ name: 'Received', value: v }] } };
+      }
       return makeFakeMsg({
         value: `by 127.0.0.1 with SMTP id deadbeefcafe;        ${date}`,
       });
@@ -126,19 +131,29 @@ describe('message db tests', () => {
       );
     });
 
-    it('even parses long Received headers that rely on semicolons', () => {
+    it('even parses long Received headers that rely on semicolons 1', () => {
       const value = `
 from a13-53.smtp-out.amazonses.com (a13-53.smtp-out.amazonses.com [54.240.13.53])
 (using TLSv1.2 with cipher ECDHE-RSA-AES128-SHA256 (128/128 bits))
 (No client certificate requested) by mx-fwd-1.nearlyfreespeech.net (Postfix)
 with ESMTPS for <matt@mplewis.com>; Sun, 17 May 2020 21:14:37 +0000 (UTC)
-      `
-        .trim()
-        .split('\n')
-        .join(' ');
+`;
       const msg = makeFakeMsg({ value });
       expect(parseReceivedHeader(msg)).toMatchInlineSnapshot(
         '2020-05-17T21:14:37.000Z',
+      );
+    });
+
+    it('even parses long Received headers that rely on semicolons 2', () => {
+      const value = `
+from mail-sor-f69.google.com (mail-sor-f69.google.com. [209.85.220.69])
+        by mx.google.com with SMTPS id g26sor7377804ile.82.2020.05.17.12.51.27
+        for <mathprog777@gmail.com>
+        (Google Transport Security);
+        Sun, 17 May 2020 12:51:27 -0700 (PDT)`;
+      const msg = makeFakeMsg({ value });
+      expect(parseReceivedHeader(msg)).toMatchInlineSnapshot(
+        '2020-05-17T19:51:27.000Z',
       );
     });
 
@@ -150,7 +165,7 @@ with ESMTPS for <matt@mplewis.com>; Sun, 17 May 2020 21:14:37 +0000 (UTC)
     });
 
     it('throws when Received header is mangled', () => {
-      const value = 'Fri, 17 Apr 2020 18:02:07 -0700 (PDT)'; // no timestamp prefix
+      const value = 'this is completely incorrect Fri, 17 Apr 2020; 18:02:07 -0700 (PDT)';
       const msg = makeFakeMsg({ value });
       expect(() => parseReceivedHeader(msg)).toThrowError(/Cannot parse date/);
     });
@@ -159,31 +174,41 @@ with ESMTPS for <matt@mplewis.com>; Sun, 17 May 2020 21:14:37 +0000 (UTC)
       const msg = makeFakeMsg({
         date: 'Blursday, 32 Juneteenth 2020 18:02:07 -0700 (PDT)',
       });
-      expect(() => parseReceivedHeader(msg)).toThrowError(
-        /Message date is invalid/,
-      );
+      expect(() => parseReceivedHeader(msg)).toThrowError(/Cannot parse date/);
     });
   });
 
   describe('hydrateAll', () => {
     it('hydrates the specified messages', async () => {
       const fakeClient = (null as unknown) as GmailClient;
-      const input: SparseMessage[] = [{ id: '1' }, { id: '2' }, { id: '3' }];
+      const input: SparseMessage[] = [
+        { id: '1', payload: { headers: FAKE_RECEIVED_HEADERS } },
+        { id: '2', payload: { headers: FAKE_RECEIVED_HEADERS } },
+        { id: '3', payload: { headers: FAKE_RECEIVED_HEADERS } },
+      ];
       const result = await hydrateAll(fakeClient, input);
-      expect(result).toEqual([
-        { id: '1', raw: 'hydrated_gmail_message' },
-        { id: '2', raw: 'hydrated_gmail_message' },
-        { id: '3', raw: 'hydrated_gmail_message' },
-      ]);
+      expect(result.map((m) => m.id)).toEqual(['1', '2', '3']);
     });
   });
 
   describe('persistAll', () => {
     it('persists messages to the DB as expected and returns saved row count', async () => {
       const input: GmailMessage[] = [
-        { id: '1', raw: 'hydrated_gmail_message' },
-        { id: '2', raw: 'hydrated_gmail_message' },
-        { id: '3', raw: 'hydrated_gmail_message' },
+        {
+          id: '1',
+          raw: 'hydrated_gmail_message',
+          payload: { headers: FAKE_RECEIVED_HEADERS },
+        },
+        {
+          id: '2',
+          raw: 'hydrated_gmail_message',
+          payload: { headers: FAKE_RECEIVED_HEADERS },
+        },
+        {
+          id: '3',
+          raw: 'hydrated_gmail_message',
+          payload: { headers: FAKE_RECEIVED_HEADERS },
+        },
       ];
       const result = await persistAll(input);
       expect(result).toEqual(3);
@@ -207,6 +232,7 @@ with ESMTPS for <matt@mplewis.com>; Sun, 17 May 2020 21:14:37 +0000 (UTC)
     beforeEach(async () => {
       const message = new Message();
       message.gmailId = '2';
+      message.receivedAt = new Date();
       message.data = {};
       return message.save();
     });

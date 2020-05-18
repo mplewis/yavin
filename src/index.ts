@@ -7,15 +7,19 @@ import Message from './entities/message';
 import { extractPlaintextContent } from './lib/content';
 import { EmailResponse } from './types';
 import { headerPairsToHash } from './lib/util';
-import classify from './workers/classify';
+import classify, { RAW_KEYWORDS_YAML } from './workers/classify';
 import persist from './workers/persist';
 import { createClient, installRouter } from './lib/auth';
+import { parseKeywordLists } from './lib/classify';
 
 const DEFAULT_PORT = 9999;
 const ORIGIN = 'http://localhost:8080'; // HACK: This only works with the Vue dev server for now
 const WORKER_INTERVAL = 5 * 60 * 1000; // 5m
 
 const DEFAULT_PAGE_COUNT = 10;
+
+// HACK: This import is silly. Revisit it
+const { keywords: KEYWORDS } = parseKeywordLists(RAW_KEYWORDS_YAML);
 
 let workersStarted = false;
 
@@ -59,8 +63,9 @@ function numPlucker(query: Query) {
 }
 
 function convertMessage(message: Message): EmailResponse {
-  // TODO: return real tags
-  const { id, gmailId, data } = message;
+  const {
+    id, gmailId, data, tags, receivedAt,
+  } = message;
   const headersRaw = data.payload?.headers;
   if (!headersRaw) throw new Error(`message lacks headers: ${message.id}`);
   const headers = headerPairsToHash(headersRaw);
@@ -75,8 +80,8 @@ function convertMessage(message: Message): EmailResponse {
     body,
     from,
     subject,
-    tags: ['fake-tag'],
-    suspicion: 0.01,
+    tags,
+    receivedAt,
   };
 }
 
@@ -88,13 +93,20 @@ async function createApp(): Promise<Express> {
     const pluck = numPlucker(req.query);
     const limit = pluck('limit', DEFAULT_PAGE_COUNT);
     const offset = pluck('offset', 0);
-    const messages = await Message.find({ take: limit, skip: offset });
+    const messages = await Message.find({
+      order: { receivedAt: 'DESC' },
+      take: limit,
+      skip: offset,
+    });
     const emails = messages.map((m) => convertMessage(m));
     res.json(emails);
   });
   app.get('/emails/count', async (_req, res) => {
     const count = await Message.count();
     res.json(count);
+  });
+  app.get('/keywords', async (_req, res) => {
+    res.json(KEYWORDS);
   });
   return app;
 }

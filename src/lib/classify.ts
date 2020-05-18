@@ -2,7 +2,7 @@
 import '../types/wink-porter2-stemmer';
 import stemmer from 'wink-porter2-stemmer';
 import yaml from 'js-yaml';
-import { StrNum } from '../types';
+import { StrNum, Keywords } from '../types';
 
 /** A list of keywords to be used for analyzing and tagging an email. */
 export type List = {
@@ -15,15 +15,6 @@ type BodyWithWordCounts = {
   body: string;
   words: string[];
   wordCounts: { [word: string]: number };
-};
-
-/**
- * The values for each key in the keywords file.
- */
-type KeywordDetails = {
-  threshold: number;
-  description: string;
-  keywords: string[];
 };
 
 /**
@@ -102,10 +93,12 @@ function wordOrPhrase(item: string): 'word' | 'phrase' {
  * Parse the keywords YAML into Lists.
  * @param rawYaml The raw YAML from a keywords file
  */
-export function parseKeywordLists(rawYaml: string): List[] {
-  const rawObj: { [name: string]: KeywordDetails } = yaml.safeLoad(rawYaml);
+export function parseKeywordLists(
+  rawYaml: string,
+): { keywords: Keywords; lists: List[] } {
+  const keywords: Keywords = yaml.safeLoad(rawYaml);
   const lists: List[] = [];
-  Object.entries(rawObj).forEach(([name, details]) => {
+  Object.entries(keywords).forEach(([name, details]) => {
     const { threshold } = details;
     const words: string[] = [];
     const phrases: string[] = [];
@@ -124,7 +117,7 @@ export function parseKeywordLists(rawYaml: string): List[] {
       phrases,
     });
   });
-  return lists;
+  return { keywords, lists };
 }
 
 /**

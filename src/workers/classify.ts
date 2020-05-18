@@ -6,7 +6,7 @@ import { extractPlaintextContent } from '../lib/content';
 
 const BATCH_SIZE = 10;
 const RAW_KEYWORDS_PATH = join('resources', 'keywords.yaml');
-const RAW_KEYWORDS_YAML = readFileSync(RAW_KEYWORDS_PATH).toString();
+export const RAW_KEYWORDS_YAML = readFileSync(RAW_KEYWORDS_PATH).toString();
 
 async function persistTags(message: Message, tags: string[]): Promise<void> {
   const now = new Date();
@@ -40,7 +40,7 @@ async function classifyOne(message: Message, lists: List[]): Promise<void> {
  * successfully classified.
  */
 export default async function classify(lists?: List[]): Promise<number> {
-  const xLists = lists || (await parseKeywordLists(RAW_KEYWORDS_YAML));
+  const xLists = lists || (await parseKeywordLists(RAW_KEYWORDS_YAML)).lists;
   const toTag = await Message.find({
     take: BATCH_SIZE,
     where: { taggedAt: null },

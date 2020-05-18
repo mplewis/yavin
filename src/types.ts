@@ -17,10 +17,23 @@ export type MessagePartBody = GmailV1.Schema$MessagePartBody;
 export interface EmailResponse {
   id: number;
   gmailId: string;
-  tags: string[];
-  suspicion: number;
+  tags?: string[];
   from: string;
   subject: string;
   body?: string;
   data: Message;
+  receivedAt: Date;
 }
+
+/**
+ * The list of keywords used to analyze emails.
+ */
+export type Keywords = { [name: string]: KeywordDetails };
+/**
+ * The values for each type of keyword.
+ */
+export type KeywordDetails = {
+  threshold: number;
+  description: string;
+  keywords: string[];
+};
