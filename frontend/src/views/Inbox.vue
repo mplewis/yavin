@@ -43,7 +43,7 @@
         </b-row>
       </b-col>
       <b-col cols="8">
-        <Details v-if="message" :details="message" />
+        <Details v-if="message" :keywords="keywords" :details="message" />
         <p v-else>Select a message to view.</p>
       </b-col>
     </b-row>
@@ -95,8 +95,7 @@ async function fetchJsonRetry(url: string): Promise<any> {
 }
 
 async function loadKeywords(): Promise<Keywords> {
-  const resp = await fetchJsonRetry('//localhost:9999/keywords');
-  return resp.json();
+  return fetchJsonRetry('//localhost:9999/keywords');
 }
 
 async function loadPageCount(): Promise<number> {
