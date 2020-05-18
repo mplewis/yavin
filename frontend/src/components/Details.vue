@@ -5,15 +5,15 @@
       <b-col class="left" cols="4">Date</b-col>
       <b-col class="right" cols="8">{{ details.receivedAt }}</b-col>
     </b-row>
-    <b-row>
+    <b-row class="evenRow">
       <b-col class="left" cols="4">From</b-col>
       <b-col class="right" cols="8">{{ details.from }}</b-col>
     </b-row>
-    <b-row class="evenRow">
+    <b-row>
       <b-col class="left" cols="4">Subject</b-col>
       <b-col class="right" cols="8">{{ details.subject }}</b-col>
     </b-row>
-    <b-row class="tags">
+    <b-row class="evenRow tags">
       <b-col class="left" cols="4">Tags</b-col>
       <b-col class="right" cols="8">
         <span v-if="details.tags.length > 0">
@@ -27,10 +27,6 @@
         </span>
         <span v-else><em>No tags</em></span>
       </b-col>
-    </b-row>
-    <b-row class="evenRow">
-      <b-col class="left" cols="4">Suspicion</b-col>
-      <b-col class="right" cols="8">{{ details.suspicion }}</b-col>
     </b-row>
     <b-row>
       <b-col class="left" cols="4">Body</b-col>

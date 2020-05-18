@@ -31,23 +31,19 @@ describe('Details', () => {
           <b-col cols="4" class="left">Date</b-col>
           <b-col cols="8" class="right"></b-col>
         </b-row>
-        <b-row>
+        <b-row class="evenRow">
           <b-col cols="4" class="left">From</b-col>
           <b-col cols="8" class="right">scammer@spamsite.xyz</b-col>
         </b-row>
-        <b-row class="evenRow">
+        <b-row>
           <b-col cols="4" class="left">Subject</b-col>
           <b-col cols="8" class="right">FREE corona 4 u</b-col>
         </b-row>
-        <b-row class="tags">
+        <b-row class="evenRow tags">
           <b-col cols="4" class="left">Tags</b-col>
           <b-col cols="8" class="right"><span><details><summary>virus</summary> <p>Concerning viruses and disease transmission</p> <p>
                   Includes: <em>covid19, flu, pneumonia</em></p></details><details><summary>scarewords</summary> <p>Intended to lower the reader's guard</p> <p>
                   Includes: <em>act now, danger, immediate</em></p></details></span></b-col>
-        </b-row>
-        <b-row class="evenRow">
-          <b-col cols="4" class="left">Suspicion</b-col>
-          <b-col cols="8" class="right">0.201</b-col>
         </b-row>
         <b-row>
           <b-col cols="4" class="left">Body</b-col>
