@@ -2,6 +2,10 @@
   <div class="details">
     <h1>Details</h1>
     <b-row>
+      <b-col class="left" cols="4">Date</b-col>
+      <b-col class="right" cols="8">{{ details.receivedAt }}</b-col>
+    </b-row>
+    <b-row>
       <b-col class="left" cols="4">From</b-col>
       <b-col class="right" cols="8">{{ details.from }}</b-col>
     </b-row>
@@ -35,6 +39,7 @@ import 'reflect-metadata';
 import { Vue, Component, Prop } from 'vue-property-decorator';
 
 interface DetailsProps {
+  receivedAt: Date;
   from: string;
   subject: string;
   tags: string[];

@@ -22,6 +22,7 @@ export interface EmailResponse {
   subject: string;
   body?: string;
   data: Message;
+  receivedAt: Date;
 }
 
 /**

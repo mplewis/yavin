@@ -64,7 +64,7 @@ function numPlucker(query: Query) {
 
 function convertMessage(message: Message): EmailResponse {
   const {
-    id, gmailId, data, tags,
+    id, gmailId, data, tags, receivedAt,
   } = message;
   const headersRaw = data.payload?.headers;
   if (!headersRaw) throw new Error(`message lacks headers: ${message.id}`);
@@ -81,6 +81,7 @@ function convertMessage(message: Message): EmailResponse {
     from,
     subject,
     tags,
+    receivedAt,
   };
 }
 
