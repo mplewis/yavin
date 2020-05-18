@@ -2,14 +2,28 @@
   <b-container>
     <b-row>
       <b-navbar>
-        <b-navbar-brand href="#">Yavin</b-navbar-brand>
+        <b-navbar-brand @click="setFilter(null)" href="#">Yavin</b-navbar-brand>
         <b-navbar-toggle target="nav-collapse" />
         <b-collapse id="nav-collapse" is-nav>
           <b-navbar-nav>
-            <b-nav-item>Suspicious</b-nav-item>
-            <b-nav-item>Clean</b-nav-item>
-            <b-nav-item>To Analyze</b-nav-item>
-            <b-nav-item>Everything</b-nav-item>
+            <b-nav-item
+              @click="setFilter(null)"
+              :class="{ active: filter === null }"
+            >
+              Everything
+            </b-nav-item>
+            <b-nav-item
+              @click="setFilter('suspicious')"
+              :class="{ active: filter === 'suspicious' }"
+            >
+              Suspicious
+            </b-nav-item>
+            <b-nav-item
+              @click="setFilter('clean')"
+              :class="{ active: filter === 'clean' }"
+            >
+              Clean
+            </b-nav-item>
           </b-navbar-nav>
         </b-collapse>
       </b-navbar>
@@ -58,7 +72,7 @@ import { stringify } from 'query-string';
 import { EmailResponse } from '../types';
 import Summary from '../components/Summary.vue';
 import Details from '../components/Details.vue';
-import { Keywords } from '../../../src/types';
+import { Keywords, StrStr } from '../../../src/types';
 
 /**
  * Number of times to retry getting emails
@@ -69,11 +83,13 @@ const MAX_ATTEMPTS = 3;
  */
 const PAGE_SIZE = 8;
 
-function urlWithQs(
-  url: string,
-  queryParams: { [k: string]: string | number },
-): string {
-  return `${url}?${stringify(queryParams)}`;
+type OptionalQueryParams = { [k: string]: string | number | null };
+function urlWithQs(url: string, queryParams: OptionalQueryParams): string {
+  const toKeep: StrStr = {};
+  Object.entries(queryParams).forEach(([k, v]) => {
+    if (v !== null) toKeep[k] = v.toString();
+  });
+  return `${url}?${stringify(toKeep)}`;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -98,12 +114,17 @@ async function loadKeywords(): Promise<Keywords> {
   return fetchJsonRetry('//localhost:9999/keywords');
 }
 
-async function loadPageCount(): Promise<number> {
-  return fetchJsonRetry('//localhost:9999/emails/count');
+async function loadPageCount(filter: string | null): Promise<number> {
+  const url = urlWithQs('//localhost:9999/emails/count', { filter });
+  return fetchJsonRetry(url);
 }
 
-async function loadEmails(page: number): Promise<EmailResponse[]> {
+async function loadEmails(
+  filter: string | null,
+  page: number,
+): Promise<EmailResponse[]> {
   const url = urlWithQs('//localhost:9999/emails', {
+    filter,
     offset: page * PAGE_SIZE,
     limit: PAGE_SIZE,
   });
@@ -115,6 +136,8 @@ async function loadEmails(page: number): Promise<EmailResponse[]> {
   components: { Summary, Details },
 })
 export default class Inbox extends Vue {
+  filter: string | null = null;
+
   keywords: Keywords = {};
 
   pagesOfMessages: EmailResponse[][] = [];
@@ -158,7 +181,14 @@ export default class Inbox extends Vue {
     loadKeywords().then((keywords) => {
       this.keywords = keywords;
     });
-    this.messageCount = await loadPageCount();
+    this.reloadEverything();
+  }
+
+  async reloadEverything(): Promise<void> {
+    this.page = 0;
+    this.pagesOfMessages = [];
+    this.currMessageIndex = null;
+    this.messageCount = await loadPageCount(this.filter);
     this.pageCount = Math.ceil(this.messageCount / PAGE_SIZE);
     await this.loadPage(this.page);
   }
@@ -167,9 +197,14 @@ export default class Inbox extends Vue {
     this.deselect();
     this.page = page;
     if (this.messages) return;
-    const pageData = await loadEmails(page);
+    const pageData = await loadEmails(this.filter, page);
     this.pagesOfMessages[this.page] = pageData;
     this.$set(this.pagesOfMessages, this.page, pageData);
+  }
+
+  setFilter(filter: string | null): void {
+    this.filter = filter;
+    this.reloadEverything();
   }
 
   show(i: number): void {
