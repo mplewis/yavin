@@ -104,7 +104,10 @@ describe('message db tests', () => {
       date?: string;
       value?: string;
     }): GmailMessage {
-      if (value) return { payload: { headers: [{ name: 'Received', value }] } };
+      if (value) {
+        const v = value.trim().split('\n').join();
+        return { payload: { headers: [{ name: 'Received', value: v }] } };
+      }
       return makeFakeMsg({
         value: `by 127.0.0.1 with SMTP id deadbeefcafe;        ${date}`,
       });
@@ -128,19 +131,29 @@ describe('message db tests', () => {
       );
     });
 
-    it('even parses long Received headers that rely on semicolons', () => {
+    it('even parses long Received headers that rely on semicolons 1', () => {
       const value = `
 from a13-53.smtp-out.amazonses.com (a13-53.smtp-out.amazonses.com [54.240.13.53])
 (using TLSv1.2 with cipher ECDHE-RSA-AES128-SHA256 (128/128 bits))
 (No client certificate requested) by mx-fwd-1.nearlyfreespeech.net (Postfix)
 with ESMTPS for <matt@mplewis.com>; Sun, 17 May 2020 21:14:37 +0000 (UTC)
-      `
-        .trim()
-        .split('\n')
-        .join(' ');
+`;
       const msg = makeFakeMsg({ value });
       expect(parseReceivedHeader(msg)).toMatchInlineSnapshot(
         '2020-05-17T21:14:37.000Z',
+      );
+    });
+
+    it('even parses long Received headers that rely on semicolons 2', () => {
+      const value = `
+from mail-sor-f69.google.com (mail-sor-f69.google.com. [209.85.220.69])
+        by mx.google.com with SMTPS id g26sor7377804ile.82.2020.05.17.12.51.27
+        for <mathprog777@gmail.com>
+        (Google Transport Security);
+        Sun, 17 May 2020 12:51:27 -0700 (PDT)`;
+      const msg = makeFakeMsg({ value });
+      expect(parseReceivedHeader(msg)).toMatchInlineSnapshot(
+        '2020-05-17T19:51:27.000Z',
       );
     });
 
@@ -152,7 +165,7 @@ with ESMTPS for <matt@mplewis.com>; Sun, 17 May 2020 21:14:37 +0000 (UTC)
     });
 
     it('throws when Received header is mangled', () => {
-      const value = 'Fri, 17 Apr 2020 18:02:07 -0700 (PDT)'; // no timestamp prefix
+      const value = 'this is completely incorrect Fri, 17 Apr 2020; 18:02:07 -0700 (PDT)';
       const msg = makeFakeMsg({ value });
       expect(() => parseReceivedHeader(msg)).toThrowError(/Cannot parse date/);
     });
@@ -161,9 +174,7 @@ with ESMTPS for <matt@mplewis.com>; Sun, 17 May 2020 21:14:37 +0000 (UTC)
       const msg = makeFakeMsg({
         date: 'Blursday, 32 Juneteenth 2020 18:02:07 -0700 (PDT)',
       });
-      expect(() => parseReceivedHeader(msg)).toThrowError(
-        /Message date is invalid/,
-      );
+      expect(() => parseReceivedHeader(msg)).toThrowError(/Cannot parse date/);
     });
   });
 

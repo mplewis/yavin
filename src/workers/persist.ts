@@ -67,16 +67,31 @@ export async function hydrateAll(
   );
 }
 
-function tryManyMatchers(
-  s: string,
-  matchers: RegExp[],
-): RegExpMatchArray | null {
+function parseDate(s: string): Date | null {
+  const date = new Date(s);
+  if (date.toString() === 'Invalid Date') return null;
+  return date;
+}
+
+function parseReceived(received: string): Date {
+  // HACK: This entire series of logic is one giant try-catch. Really, really revisit this when we
+  // have a better idea of how email dates work
+  if (!parseDate) throw new Error('Cannot parse date for blank Received');
+  const matchers = [/with \S+ id \S+;?\s*(.+)/, /;\s*(.+)/];
   // eslint-disable-next-line no-restricted-syntax
   for (const matcher of matchers) {
-    const match = s.match(matcher);
-    if (match) return match;
+    const match = received.match(matcher);
+    if (!match) continue; // eslint-disable-line no-continue
+    const substr = match[1];
+    const date = parseDate(substr);
+    if (date) return date;
   }
-  return null;
+  // last resort: parse a date from the last bit after the last semicolon
+  const bits = received.split(';');
+  const lastBit = bits[bits.length - 1];
+  const date = parseDate(lastBit);
+  if (!date) throw new Error(`Cannot parse date for Received: ${received}`);
+  return date;
 }
 
 /**
@@ -87,21 +102,7 @@ export function parseReceivedHeader(message: GmailMessage): Date {
   const raw = message.payload?.headers;
   if (!raw) throw new Error('Message has no headers, cannot parse date');
   const headers = headerPairsToHash(raw);
-
-  const receivedRaw = headers.Received;
-  const match = tryManyMatchers(receivedRaw, [
-    /with \S+ id \S+;?\s*(.+)/,
-    /;\s*(.+)/,
-  ]);
-  if (!match) throw new Error(`Cannot parse date: ${receivedRaw}`);
-  const parsed = match[1];
-
-  const received = new Date(parsed);
-  if (received.toString() === 'Invalid Date') {
-    throw new Error(`Message date is invalid: ${receivedRaw}`);
-  }
-
-  return received;
+  return parseReceived(headers.Received);
 }
 
 /**
