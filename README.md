@@ -29,7 +29,42 @@ Now you'll have a frontend and backend server running. Go to [localhost:9999](ht
 
 Once the app has the credentials it needs, it will start fetching your messages and send you to your inbox.
 
+## Scripts
+
+TODO
+
+## Commands
+
+TODO
+
 # Development
+
+TODO
+
+## Overview
+
+TODO
+
+## Keywords
+
+TODO
+
+## Models
+
+This application uses only one model: `message`. Each row represents one [Gmail message](https://developers.google.com/gmail/api/v1/reference/users/messages):
+
+| name       | type        | nullable? | description                                                                                                                    |
+| ---------- | ----------- | --------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| id         | number      |           | Primary key. Automatically assigned and incremented.                                                                           |
+| gmailId    | string      |           | The id of the message assigned by Gmail                                                                                        |
+| data       | jsonb       |           | The entire JSON body of the `Users.messages.get` response for a single message. Messages are retrieved in `format: full` mode. |
+| receivedAt | timestamptz |           | The date the email arrived at Gmail servers, parsed from headers                                                               |
+| taggedAt   | timestamptz | nullable  | The date the email was classified with tags                                                                                    |
+| tags       | jsonb       | nullable  | A JSON array of the tags applied to this email                                                                                 |
+
+## Workers
+
+TODO
 
 ## Project Layout
 
@@ -44,15 +79,64 @@ This is not the ideal project layout, and if I were to bring this to production 
 
 The frontend project itself is pretty sparse:
 
-- `src/main.ts`: The entry point for the app. When bundling for production, start here. You can add global Vue plugins (e.g. BootstrapVue) in this file with `Vue#use`.
-- `src/router/index.ts`: The router configuration. Unused right now.
-- `src/store/index.ts`: The VueX store configuration. Unused right now.
-- `src/views/App.vue`: The main view for the app. This embeds the router and is where global styles live. If this project were to progress, this would probably host the navbar.
-- `src/views/Inbox.vue`: The Inbox view. This is where the user spends all their time. Allows the user to page through emails and view their content. This component is responsible for fetching email data from the server and handling pagination.
-- `src/components/Summary.vue`: The left-side list of emails. This displays the sender, subject, and tags for an email.
-- `src/components/Details.vue`: The right-side view of an email's content. This lets the user read emails and find out why Yavin tagged them.
+- `frontend/src/main.ts`: The entry point for the app. When bundling for production, start here. You can add global Vue plugins (e.g. BootstrapVue) in this file with `Vue#use`.
+- `frontend/src/router/index.ts`: The router configuration. Unused right now.
+- `frontend/src/store/index.ts`: The VueX store configuration. Unused right now.
+- `frontend/src/views/App.vue`: The main view for the app. This embeds the router and is where global styles live. If this project were to progress, this would probably host the navbar.
+- `frontend/src/views/Inbox.vue`: The Inbox view. This is where the user spends all their time. Allows the user to page through emails and view their content. This component is responsible for fetching email data from the server and handling pagination.
+- `frontend/src/components/Summary.vue`: The left-side list of emails. This displays the sender, subject, and tags for an email.
+- `frontend/src/components/Details.vue`: The right-side view of an email's content. This lets the user read emails and find out why Yavin tagged them.
 
 ### Backend
+
+All backend source files are under the project Typescript root of `src/`.
+
+#### `src/entities`
+
+Yavin uses [TypeORM](https://github.com/typeorm/typeorm), an ORM for TypeScript that supports migrations and multiple different access patterns. Each entity (sometimes known as a model) gets its own file in this directory.
+
+#### `src/lib`
+
+This is where the core logic of the app is defined.
+
+- `index.ts`: The core Express server logic of the app. Also includes logic to manage backend workers that run in the same process as the server.
+- `types.ts`: Shared types. This is symlinked (huge hack) into `frontend/src/types` to share types between frontend and backend.
+- `auth`: Allows the backend to complete the two parts of the auth flow: 1. installing Google App secure credentials, 2. signing into Gmail as the user with their permission.
+- `classify`: Classifies email body text and tags an email according to lists of keywords.
+- `content`: Extracts text body content from emails. Produces the core input for classification.
+- `gmail`: TypeScript wrapper for the less-ergonomic Gmail APIs.
+- `storage`: Stores onboarding secure credentials in the filesystem rather than the database. This is not production-ready.
+- `util`: Utility functions used by other bits of the codebase. For example, wrappers for base64 en/decoding.
+
+#### `src/scripts`
+
+Scripts intended for direct use by developers. Run them with `yarn ts-node scripts/my_script.ts`.
+
+#### `src/types`
+
+Type wrappers for libraries without typing. I don't quite know how to use this properly.
+
+#### `src/workers`
+
+Bits of functionality intended to be used periodically as background workers.
+
+#### `fixtures/`
+
+Static file test fixtures, e.g. text body corpus for specs, keywords files.
+
+#### `resources/keywords.yaml`
+
+The tags and keywords to be used to classify emails.
+
+#### `scripts/`
+
+Scripts intended for direct use by developers. Run them directly from the shell.
+
+`scripts/use_db.js` is used to set the current database to dev, test, or prod.
+
+#### `secrets/`
+
+This is used by the `storage` library to persist critical credentials onto the disk outside of the database. If this app is ever moved to cloud deployment, you will need to refactor storage/secrets into some kind of vault service.
 
 # Known Issues
 
@@ -72,18 +156,18 @@ This app is **not** production-ready and should never be deployed to a public sy
 - [x] Set up a database
 - [x] Ingest emails into the DB idempotently
 - [x] Get tests working in CI with DB
-- [ ] OAuth with Express server backend
+- [x] OAuth with Express server backend
 - [x] Create Vue frontend
 - [x] Pass data props to Vue components
 - [x] Use live data in Vue frontend
 - [x] Classify emails in DB
-- [ ] Criteria for converting tags to suspicion
+- [x] Criteria for converting tags to suspicion WONTDO
 - [ ] Move emails from inbox to Yavin suspicious tag
-- [ ] Tell user why emails are marked suspicious
+- [x] Tell user why emails are marked suspicious
 - [x] Start both frontend and backend with `yarn start`
-- [ ] Make categories on top work
-- [ ] Write user guide in README
-- [ ] Send user daily summary email
+- [x] Make categories on top work
+- [x] Write user guide in README
+- [x] Send user daily summary email WONTDO
 - [x] Don't re-tag emails with a tagged date
 - [x] Fix build
 - [x] Make `yarn test` run frontend tests and linting too
@@ -91,10 +175,11 @@ This app is **not** production-ready and should never be deployed to a public sy
 - [x] Implement pagination in fetch emails
 - [x] Fix files with pre-commit hook
 - [ ] Server REST spec
+- [ ] Use `internalDate` for parsing received-at date
 
 # Stretch Goals
 
-- [ ] Serve compiled frontend from backend
+- [x] Serve compiled frontend from backend WONTDO
 - [ ] Classification: Bad SPF
 - [ ] Classification: Bad DKIM
 - [ ] Classification: Domain reputation?
