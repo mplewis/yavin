@@ -13,7 +13,7 @@ import { Message as GmailMessage, GmailClient } from '../types';
 import Message from '../entities/message';
 import FAKE_RECEIVED_HEADERS from '../../fixtures/fake_received_headers.json';
 
-jest.mock('../gmail/api');
+jest.mock('../lib/gmail/api');
 
 describe('castToSparse', () => {
   it('casts messages with ids to SparseMessages', () => {
