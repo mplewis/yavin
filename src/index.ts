@@ -2,7 +2,13 @@ import 'reflect-metadata';
 import cors from 'cors';
 import express, { Express } from 'express';
 import fileUpload from 'express-fileupload';
-import { createConnection } from 'typeorm';
+import {
+  createConnection,
+  Not,
+  FindConditions,
+  ObjectLiteral,
+  FindManyOptions,
+} from 'typeorm';
 import Message from './entities/message';
 import { extractPlaintextContent } from './lib/content';
 import { EmailResponse } from './types';
@@ -17,6 +23,17 @@ const ORIGIN = 'http://localhost:8080'; // HACK: This only works with the Vue de
 const WORKER_INTERVAL = 5 * 60 * 1000; // 5m
 
 const DEFAULT_PAGE_COUNT = 10;
+
+const FILTERS: {
+  [name: string]:
+    | FindConditions<Message>[]
+    | FindConditions<Message>
+    | ObjectLiteral
+    | string;
+} = {
+  clean: [{ tags: '[]' }],
+  suspicious: [{ tags: Not('[]') }],
+};
 
 // HACK: This import is silly. Revisit it
 const { keywords: KEYWORDS } = parseKeywordLists(RAW_KEYWORDS_YAML);
@@ -44,22 +61,25 @@ function work(name: string, task: () => any): void {
   setInterval(once, WORKER_INTERVAL);
 }
 
-/**
- * Pluck single) values from query params and cast them to numbers.
- * @param query The query for which to pluck values
- * @param dfault The value to be returned if the key is not present
- */
-function numPlucker(query: Query) {
-  return function pluck(key: string, dfault: number): number {
+function plucker(query: Query) {
+  function pluck(key: string): string | null {
     const raw = query[key];
-    if (!raw) return dfault;
+    if (!raw) return null;
     if (typeof raw !== 'string') {
       throw new Error(
         `Cannot pluck non-String value from query for key ${key}: ${raw}`,
       );
     }
+    return raw;
+  }
+
+  function pluckNum(key: string, dfault: number): number {
+    const raw = pluck(key);
+    if (!raw) return dfault;
     return parseInt(raw, 10);
-  };
+  }
+
+  return { pluck, pluckNum };
 }
 
 function convertMessage(message: Message): EmailResponse {
@@ -89,22 +109,58 @@ async function createApp(): Promise<Express> {
   const app = express();
   app.use(cors({ origin: ORIGIN }));
   app.use(fileUpload());
+
   app.get('/emails', async (req, res) => {
-    const pluck = numPlucker(req.query);
-    const limit = pluck('limit', DEFAULT_PAGE_COUNT);
-    const offset = pluck('offset', 0);
-    const messages = await Message.find({
+    const { pluck, pluckNum } = plucker(req.query);
+    const findParams: FindManyOptions<Message> = {
       order: { receivedAt: 'DESC' },
-      take: limit,
-      skip: offset,
-    });
+      take: pluckNum('limit', DEFAULT_PAGE_COUNT),
+      skip: pluckNum('offset', 0),
+    };
+
+    const filterName = pluck('filter');
+    if (filterName) {
+      const filter = FILTERS[filterName];
+      if (!filter) {
+        const known = Object.keys(FILTERS).join(', ');
+        res
+          .status(400)
+          .send(
+            `Expected filter to be one of ${known}, but found ${filterName}`,
+          );
+        return;
+      }
+      findParams.where = filter;
+    }
+
+    const messages = await Message.find(findParams);
     const emails = messages.map((m) => convertMessage(m));
     res.json(emails);
   });
-  app.get('/emails/count', async (_req, res) => {
-    const count = await Message.count();
+
+  app.get('/emails/count', async (req, res) => {
+    const { pluck } = plucker(req.query);
+    const findParams: FindManyOptions<Message> = {};
+
+    const filterName = pluck('filter');
+    if (filterName) {
+      const filter = FILTERS[filterName];
+      if (!filter) {
+        const known = Object.keys(FILTERS).join(', ');
+        res
+          .status(400)
+          .send(
+            `Expected filter to be one of ${known}, but found ${filterName}`,
+          );
+        return;
+      }
+      findParams.where = filter;
+    }
+
+    const count = await Message.count(findParams);
     res.json(count);
   });
+
   app.get('/keywords', async (_req, res) => {
     res.json(KEYWORDS);
   });
