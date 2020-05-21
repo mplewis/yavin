@@ -63,7 +63,7 @@ export default async function classify(
   const xLists = lists || (await parseKeywordLists(RAW_KEYWORDS_YAML)).lists;
   const toTag = await Message.find({
     take: BATCH_SIZE,
-    // where: { taggedAt: null },
+    where: { taggedAt: null },
   });
   if (toTag.length === 0) return 0;
 
