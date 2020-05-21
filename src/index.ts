@@ -2,13 +2,7 @@ import 'reflect-metadata';
 import cors from 'cors';
 import express, { Express } from 'express';
 import fileUpload from 'express-fileupload';
-import {
-  createConnection,
-  Not,
-  FindConditions,
-  ObjectLiteral,
-  FindManyOptions,
-} from 'typeorm';
+import { createConnection, FindManyOptions } from 'typeorm';
 import Message from './entities/message';
 import { extractPlaintextContent } from './lib/content';
 import { EmailResponse } from './types';
@@ -17,23 +11,13 @@ import classify, { RAW_KEYWORDS_YAML } from './workers/classify';
 import persist from './workers/persist';
 import { createClient, installRouter } from './lib/auth';
 import { parseKeywordLists } from './lib/classify';
+import { MESSAGE_FILTERS } from './lib/filters';
 
 const DEFAULT_PORT = 9999;
 const ORIGIN = 'http://localhost:8080'; // HACK: This only works with the Vue dev server for now
 const WORKER_INTERVAL = 5 * 60 * 1000; // 5m
 
 const DEFAULT_PAGE_COUNT = 10;
-
-const FILTERS: {
-  [name: string]:
-    | FindConditions<Message>[]
-    | FindConditions<Message>
-    | ObjectLiteral
-    | string;
-} = {
-  clean: [{ tags: '[]' }],
-  suspicious: [{ tags: Not('[]') }],
-};
 
 // HACK: This import is silly. Revisit it
 const { keywords: KEYWORDS } = parseKeywordLists(RAW_KEYWORDS_YAML);
@@ -122,9 +106,9 @@ async function createApp(): Promise<Express> {
 
     const filterName = pluck('filter');
     if (filterName) {
-      const filter = FILTERS[filterName];
+      const filter = MESSAGE_FILTERS[filterName];
       if (!filter) {
-        const known = Object.keys(FILTERS).join(', ');
+        const known = Object.keys(MESSAGE_FILTERS).join(', ');
         res
           .status(400)
           .send(
@@ -146,9 +130,9 @@ async function createApp(): Promise<Express> {
 
     const filterName = pluck('filter');
     if (filterName) {
-      const filter = FILTERS[filterName];
+      const filter = MESSAGE_FILTERS[filterName];
       if (!filter) {
-        const known = Object.keys(FILTERS).join(', ');
+        const known = Object.keys(MESSAGE_FILTERS).join(', ');
         res
           .status(400)
           .send(
