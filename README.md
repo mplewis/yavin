@@ -162,7 +162,7 @@ This app is **not** production-ready and should never be deployed to a public sy
 - [x] Use live data in Vue frontend
 - [x] Classify emails in DB
 - [x] Criteria for converting tags to suspicion WONTDO
-- [ ] Move emails from inbox to Yavin suspicious tag
+- [x] Move emails from inbox to Yavin suspicious tag
 - [x] Tell user why emails are marked suspicious
 - [x] Start both frontend and backend with `yarn start`
 - [x] Make categories on top work

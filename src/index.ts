@@ -159,7 +159,7 @@ async function startWorkers(): Promise<void> {
   if (!client) throw new Error('Cannot create workers; client is not ready');
   work('persistAndClassify', async () => {
     await persist(client);
-    await classify();
+    await classify(client);
   });
   workersStarted = true;
 }

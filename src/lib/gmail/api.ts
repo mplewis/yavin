@@ -96,6 +96,13 @@ export async function createLabel(
   return resp.data;
 }
 
+function ensureLabelHasId(label: Label): LabelWithId {
+  const { id } = label;
+  if (!id) throw new Error('Label has no id');
+  return { ...label, id };
+}
+
+export type LabelWithId = Label & { id: string };
 /**
  * Get one or more existing labels by name if they exist. Otherwise, create them.
  * @param client An authorized GmailClient
@@ -104,17 +111,22 @@ export async function createLabel(
 export async function ensureLabels(
   client: GmailClient,
   names: string[],
-): Promise<{ [name: string]: Label }> {
+): Promise<{ [name: string]: LabelWithId }> {
   const existingLabels = await listLabels(client);
-  const created: { [name: string]: Label } = {};
+  const created: { [name: string]: LabelWithId } = {};
   await Promise.all(
     names.map(async (name) => {
       const existingLabel = existingLabels.find((label) => label.name === name);
       if (existingLabel) {
-        created[name] = existingLabel;
+        console.log(
+          `Found existing label ${existingLabel.id}: ${existingLabel.name}`,
+        );
+        created[name] = ensureLabelHasId(existingLabel);
         return;
       }
-      created[name] = await createLabel(client, name);
+      const newLabel = await createLabel(client, name);
+      console.log(`Created label ${newLabel.id}: ${newLabel.name}`);
+      created[name] = ensureLabelHasId(newLabel);
     }),
   );
   return created;
