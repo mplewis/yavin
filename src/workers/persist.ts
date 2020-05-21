@@ -1,4 +1,4 @@
-import { getMessage, listMessages } from '../gmail/api';
+import { getMessage, listMessages } from '../lib/gmail/api';
 import { GmailClient, Message as GmailMessage } from '../types';
 import Message from '../entities/message';
 import { keepTruthy, headerPairsToHash } from '../lib/util';

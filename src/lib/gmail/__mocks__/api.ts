@@ -1,5 +1,5 @@
-import { GmailClient, Message } from '../../types';
-import FAKE_RECEIVED_HEADERS from '../../../fixtures/fake_received_headers.json';
+import { GmailClient, Message } from '../../../types';
+import FAKE_RECEIVED_HEADERS from '../../../../fixtures/fake_received_headers.json';
 
 export async function listMessages(
   _client: GmailClient,
