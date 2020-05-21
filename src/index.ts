@@ -61,7 +61,9 @@ function work(name: string, task: () => any): void {
   setInterval(once, WORKER_INTERVAL);
 }
 
-function plucker(query: Query) {
+type Plucker = (key: string) => string | null;
+type NumPlucker = (key: string, dfault: number) => number;
+function plucker(query: Query): { pluck: Plucker; pluckNum: NumPlucker } {
   function pluck(key: string): string | null {
     const raw = query[key];
     if (!raw) return null;
