@@ -70,6 +70,7 @@ export default async function classify(
   const classifyResults = await Promise.all(
     toTag.map(async (message) => {
       const result = await classifyOne(message, xLists);
+      // TODO: Label emails after the fact to save on API requests with message.batchModify
       let label: LabelWithId;
       if (!result.success) {
         label = labelUntaggable;
