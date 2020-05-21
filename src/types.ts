@@ -10,6 +10,7 @@ export type Thread = GmailV1.Schema$Thread;
 export type Message = GmailV1.Schema$Message;
 export type MessagePart = GmailV1.Schema$MessagePart;
 export type MessagePartBody = GmailV1.Schema$MessagePartBody;
+export type Label = GmailV1.Schema$Label;
 
 /**
  * Returned from the "GET /emails" endpoint.
