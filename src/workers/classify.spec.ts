@@ -6,6 +6,10 @@ import { encode } from '../lib/util';
 import { parseKeywordLists, List } from '../lib/classify';
 import FAKE_RECEIVED_HEADERS from '../../fixtures/fake_received_headers.json';
 import ensureSafeDb from '../spec/helpers/ensure_safe_db';
+import { GmailClient } from '../types';
+import * as gmailApiMock from '../lib/gmail/api';
+
+jest.mock('../lib/gmail/api');
 
 const messageFixtures = [
   // Empty; should be unclassifiable
@@ -59,6 +63,7 @@ describe('message db tests', () => {
   ensureSafeDb();
 
   describe('classify', () => {
+    const client = (null as unknown) as GmailClient;
     let lists: List[];
     beforeEach(async () => {
       const rawYaml = readFileSync(
@@ -69,7 +74,7 @@ describe('message db tests', () => {
     });
 
     it('classifies messages properly', async () => {
-      await classify(lists);
+      await classify(client, lists);
       const empty = await Message.findOneOrFail({ gmailId: 'a' });
       const theft = await Message.findOneOrFail({ gmailId: 'b' });
       const fraud = await Message.findOneOrFail({ gmailId: 'c' });
@@ -78,6 +83,14 @@ describe('message db tests', () => {
       expect(theft.tags).toEqual(['theft']);
       expect(fraud.tags).toEqual(['fraud']);
       expect(conspiracy.tags).toEqual(['conspiracy']);
+      // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+      // @ts-ignore
+      expect(gmailApiMock.labelsApplied()).toEqual({
+        a: ['Yavin: Untaggable'],
+        b: ['Yavin: Suspicious'],
+        c: ['Yavin: Suspicious'],
+        d: ['Yavin: Suspicious'],
+      });
     });
   });
 });
