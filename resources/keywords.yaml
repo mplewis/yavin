@@ -13,9 +13,9 @@ covid19:
 agency:
   threshold: 0.00000001 # ostensibly one occurrence
   description: >
-    These words are associated with public agencies, including health agencies such as the WHO or
-    CDC. The sender may be trying to legitimize their message by associating with an organization
-    you know and trust, even if they do not work with this organization.
+    These words are associated with public agencies. The sender may be trying to legitimize their
+    message by associating with an organization you know and trust, even if they do not work with
+    this organization.
   keywords:
     - World Health Organization
     - CDC
@@ -25,7 +25,7 @@ agency:
     - United Nation
 
 places:
-  threshold: 0.02
+  threshold: 0.005
   description: >
     These words are associated with places commonly discussed in conjunction with COVID-19.
     The sender may be trying to legitimize their message by linking it to recent news you've read
@@ -38,7 +38,7 @@ places:
     - South Korea
 
 illness:
-  threshold: 0.02
+  threshold: 0.005
   description: >
     These words are associated with illness. The sender may be trying to lower your guard by
     scaring you with the severity of an illness or outbreak.
@@ -55,7 +55,7 @@ illness:
     - alcohol
 
 politics:
-  threshold: 0.01
+  threshold: 0.005
   description: >
     These words are associated with American politics. The sender may be trying to legitimize
     their message by associating with an authority or government program you already know about.
@@ -65,17 +65,14 @@ politics:
     - relief
 
 scare_words:
-  threshold: 0.02
+  threshold: 0.01
   description: >
-    These words are "scare words" (e.g. emergency, outbreak, ventilator). The sender may be trying
-    to lower your guard by overplaying the importance or severity of their message.
+    These words are "scare words". The sender may be trying to lower your guard by overplaying
+    the importance or severity of their message.
   keywords:
     - emergency
     - outbreak
-    - safe
-    - confidential
     - isolate
-    - effective
     - killing
     - ultraviolet
     - UV
@@ -83,7 +80,7 @@ scare_words:
     - ventilator
 
 sales:
-  threshold: 0.01
+  threshold: 0.05
   description: >
     These words relate to marketing, sales, or business. The sender may be offering you a
     multi-level marketing scheme that is too good to be true.

@@ -295,9 +295,7 @@ describe('with the real keyword list and real emails', () => {
           "agency",
         ],
         "fixtures/emails/legit/2_password_reset.yaml": Array [],
-        "fixtures/emails/legit/3_personal.yaml": Array [
-          "sales",
-        ],
+        "fixtures/emails/legit/3_personal.yaml": Array [],
         "fixtures/emails/legit/4_update.yaml": Array [],
         "fixtures/emails/scam/1_419.yaml": Array [
           "agency",
@@ -306,9 +304,11 @@ describe('with the real keyword list and real emails', () => {
           "covid19",
           "agency",
           "places",
+          "scare_words",
         ],
         "fixtures/emails/scam/3_donation.yaml": Array [
           "covid19",
+          "places",
           "illness",
         ],
         "fixtures/emails/scam/4_sales.yaml": Array [
