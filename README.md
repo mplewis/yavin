@@ -29,10 +29,6 @@ Now you'll have a frontend and backend server running. Go to [localhost:9999](ht
 
 Once the app has the credentials it needs, it will start fetching your messages and send you to your inbox.
 
-## Scripts
-
-TODO
-
 ## Commands
 
 TODO
