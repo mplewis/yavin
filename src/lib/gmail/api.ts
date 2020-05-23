@@ -1,11 +1,16 @@
-import { GmailClient, Thread, Message } from '../../types';
+import {
+  GmailClient, Thread, Message, Label,
+} from '../../types';
+
+// The special value "me" can be used to indicate the authenticated user.
+const SELF = { userId: 'me' };
 
 /**
  * Get the first page of threads from the currently signed-in user's inbox.
  * @param client An authorized GmailClient
  */
 export async function listThreads(client: GmailClient): Promise<Thread[]> {
-  const resp = await client.users.threads.list({ userId: 'me' });
+  const resp = await client.users.threads.list({ ...SELF });
   const { threads } = resp.data;
   if (!threads) return [];
   return threads;
@@ -24,7 +29,7 @@ export async function listMessages(
   pageToken?: string,
 ): Promise<{ messages: Message[]; nextPageToken?: string }> {
   const resp = await client.users.messages.list({
-    userId: 'me',
+    ...SELF,
     q: query,
     pageToken,
   });
@@ -44,7 +49,7 @@ export async function getThread(
   client: GmailClient,
   id: string,
 ): Promise<Message[]> {
-  const resp = await client.users.threads.get({ userId: 'me', id });
+  const resp = await client.users.threads.get({ ...SELF, id });
   const { messages } = resp.data;
   if (!messages) throw new Error('thread has no messages');
   return messages;
@@ -59,6 +64,90 @@ export async function getMessage(
   client: GmailClient,
   id: string,
 ): Promise<Message> {
-  const resp = await client.users.messages.get({ userId: 'me', id });
+  const resp = await client.users.messages.get({ ...SELF, id });
+  return resp.data;
+}
+
+/**
+ * List all existing labels.
+ * @param client An authorized GmailClient
+ */
+export async function listLabels(client: GmailClient): Promise<Label[]> {
+  const {
+    data: { labels },
+  } = await client.users.labels.list({ ...SELF });
+  if (!labels) throw new Error('Received no labels');
+  return labels;
+}
+
+/**
+ * Create a label.
+ * @param client An authorized GmailClient
+ * @param name The name of the label to create
+ */
+export async function createLabel(
+  client: GmailClient,
+  name: string,
+): Promise<Label> {
+  const resp = await client.users.labels.create({
+    ...SELF,
+    requestBody: { name },
+  });
+  return resp.data;
+}
+
+function ensureLabelHasId(label: Label): LabelWithId {
+  const { id } = label;
+  if (!id) throw new Error('Label has no id');
+  return { ...label, id };
+}
+
+export type LabelWithId = Label & { id: string };
+/**
+ * Get one or more existing labels by name if they exist. Otherwise, create them.
+ * @param client An authorized GmailClient
+ * @param name The name of the labels to retrieve or create
+ */
+export async function ensureLabels(
+  client: GmailClient,
+  names: string[],
+): Promise<{ [name: string]: LabelWithId }> {
+  const existingLabels = await listLabels(client);
+  const created: { [name: string]: LabelWithId } = {};
+  await Promise.all(
+    names.map(async (name) => {
+      const existingLabel = existingLabels.find((label) => label.name === name);
+      if (existingLabel) {
+        console.log(
+          `Found existing label ${existingLabel.id}: ${existingLabel.name}`,
+        );
+        created[name] = ensureLabelHasId(existingLabel);
+        return;
+      }
+      const newLabel = await createLabel(client, name);
+      console.log(`Created label ${newLabel.id}: ${newLabel.name}`);
+      created[name] = ensureLabelHasId(newLabel);
+    }),
+  );
+  return created;
+}
+
+/**
+ * Add a label to a message.
+ * @param client An authorized GmailClient
+ * @param gmailId The ID of the message to label
+ * @param labelId The ID of the label to apply
+ */
+export async function labelMessage(
+  client: GmailClient,
+  gmailId: string,
+  labelId: string,
+): Promise<Message> {
+  const requestBody = { addLabelIds: [labelId] };
+  const resp = await client.users.messages.modify({
+    ...SELF,
+    id: gmailId,
+    requestBody,
+  });
   return resp.data;
 }

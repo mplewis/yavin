@@ -3,6 +3,8 @@ import { readFileSync } from 'fs-extra';
 import Message from '../entities/message';
 import { List, tag, parseKeywordLists } from '../lib/classify';
 import { extractPlaintextContent } from '../lib/content';
+import { ensureLabels, labelMessage, LabelWithId } from '../lib/gmail/api';
+import { GmailClient } from '../types';
 
 const BATCH_SIZE = 10;
 const RAW_KEYWORDS_PATH = join('resources', 'keywords.yaml');
@@ -17,35 +19,73 @@ async function persistTags(message: Message, tags: string[]): Promise<void> {
   console.log(`Tagged ${message.id} with ${tagsStr}`);
 }
 
+type ClassifyResult = { success: boolean; tagsApplied: string[] };
 /**
  * Classify a message using keyword lists, then persist its tags to the database.
- * Returns true on success, false if body could not be extracted.
+ * Returns whether body extraction was successful and the tags applied.
  * @param message The message to classify
  * @param lists The keyword lists to be used for tagging
  */
-async function classifyOne(message: Message, lists: List[]): Promise<void> {
+async function classifyOne(
+  message: Message,
+  lists: List[],
+): Promise<ClassifyResult> {
   const body = extractPlaintextContent(message.data);
   if (!body) {
     console.warn(`Could not extract plaintext body for ${message.id}`);
-    await persistTags(message, ['untaggable']);
-    return;
+    const tags = ['untaggable'];
+    await persistTags(message, tags);
+    return { success: false, tagsApplied: tags };
   }
 
   const tags = tag(body, lists);
   await persistTags(message, tags);
+  return { success: true, tagsApplied: tags };
 }
 
 /**
  * Add tags to classify unclassified emails in the database. Returns the number of emails
  * successfully classified.
  */
-export default async function classify(lists?: List[]): Promise<number> {
+export default async function classify(
+  client: GmailClient,
+  lists?: List[],
+): Promise<number> {
+  const {
+    'Yavin: Clean': labelClean,
+    'Yavin: Suspicious': labelSuspicious,
+    'Yavin: Untaggable': labelUntaggable,
+  } = await ensureLabels(client, [
+    'Yavin: Clean',
+    'Yavin: Suspicious',
+    'Yavin: Untaggable',
+  ]);
   const xLists = lists || (await parseKeywordLists(RAW_KEYWORDS_YAML)).lists;
   const toTag = await Message.find({
     take: BATCH_SIZE,
     where: { taggedAt: null },
   });
   if (toTag.length === 0) return 0;
-  await Promise.all(toTag.map((message) => classifyOne(message, xLists)));
-  return toTag.length + (await classify(lists));
+
+  const classifyResults = await Promise.all(
+    toTag.map(async (message) => {
+      const result = await classifyOne(message, xLists);
+      // TODO: Label emails after the fact to save on API requests with message.batchModify
+      let label: LabelWithId;
+      if (!result.success) {
+        label = labelUntaggable;
+      } else if (result.tagsApplied.length === 0) {
+        label = labelClean;
+      } else {
+        label = labelSuspicious;
+      }
+      const messageId = message.gmailId;
+      console.log(`Labeling ${messageId} with ${label.name}`);
+      await labelMessage(client, messageId, label.id);
+      return result;
+    }),
+  );
+
+  const successes = classifyResults.filter((result) => result.success).length;
+  return successes + (await classify(client, lists));
 }

@@ -1,11 +1,15 @@
-import { Connection, createConnection } from 'typeorm';
-import { readFile, readFileSync } from 'fs-extra';
+import { readFileSync } from 'fs-extra';
 import { join } from 'path';
 import classify from './classify';
 import Message from '../entities/message';
 import { encode } from '../lib/util';
 import { parseKeywordLists, List } from '../lib/classify';
 import FAKE_RECEIVED_HEADERS from '../../fixtures/fake_received_headers.json';
+import ensureSafeDb from '../spec/helpers/ensure_safe_db';
+import { GmailClient } from '../types';
+import * as gmailApiMock from '../lib/gmail/api';
+
+jest.mock('../lib/gmail/api');
 
 const messageFixtures = [
   // Empty; should be unclassifiable
@@ -56,28 +60,10 @@ function createMessages(): Promise<Message[]> {
 }
 
 describe('message db tests', () => {
-  let conn: Connection;
-  beforeAll(async () => {
-    conn = await createConnection();
-  });
-  afterAll(async () => {
-    await conn.close();
-  });
-
-  afterEach(async () => {
-    // HACK: This is a really jank way to ensure that VSCode's Jest runner doesn't nuke the current
-    // DB when you're running a dev server alongside your editor
-    const ormconfig = JSON.parse(
-      (await readFile('./ormconfig.json')).toString(),
-    );
-    const { database }: { database: string } = ormconfig;
-    if (!database.endsWith('_test')) {
-      throw new Error(`Cowardly refusing to clear non-test DB ${database}`);
-    }
-    await Message.clear();
-  });
+  ensureSafeDb();
 
   describe('classify', () => {
+    const client = (null as unknown) as GmailClient;
     let lists: List[];
     beforeEach(async () => {
       const rawYaml = readFileSync(
@@ -88,7 +74,7 @@ describe('message db tests', () => {
     });
 
     it('classifies messages properly', async () => {
-      await classify(lists);
+      await classify(client, lists);
       const empty = await Message.findOneOrFail({ gmailId: 'a' });
       const theft = await Message.findOneOrFail({ gmailId: 'b' });
       const fraud = await Message.findOneOrFail({ gmailId: 'c' });
@@ -97,6 +83,14 @@ describe('message db tests', () => {
       expect(theft.tags).toEqual(['theft']);
       expect(fraud.tags).toEqual(['fraud']);
       expect(conspiracy.tags).toEqual(['conspiracy']);
+      // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+      // @ts-ignore
+      expect(gmailApiMock.labelsApplied()).toEqual({
+        a: ['Yavin: Untaggable'],
+        b: ['Yavin: Suspicious'],
+        c: ['Yavin: Suspicious'],
+        d: ['Yavin: Suspicious'],
+      });
     });
   });
 });
