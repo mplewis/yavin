@@ -31,19 +31,68 @@ Once the app has the credentials it needs, it will start fetching your messages 
 
 ## Commands
 
-TODO
+All commands should be prefixed with `yarn`.
+
+- `start`: Start the frontend (with hot reload) and backend servers.
+- `start:watch`: Same as `start` but restarts the backend server on code changes.
+- `test`: Run all tests (`test:jest`, `test:lint`, `test:frontend`).
+- `test:watch`: Run backend tests with a watcher.
+- `todo`: List all bits of the codebase marked with `TODO`, `FIXME`, or `HACK`.
+- `fix`: Runs Prettier then eslint-autofix to standardize code and fix any cosmetic issues.
 
 # Development
 
-TODO
-
-## Overview
-
-TODO
-
 ## Keywords
 
-TODO
+The Keywords are what defines if an email is suspicious or not. Keywords are defined in `resources/keywords.yaml`. For example:
+
+```yaml
+places:
+  threshold: 0.005
+  description: >
+    These words are associated with places commonly discussed in conjunction with COVID-19.
+    The sender may be trying to legitimize their message by linking it to recent news you've read
+    about these places.
+  keywords:
+    - Japan
+    - Wuhan
+    - China
+    - Italy
+    - South Korea
+```
+
+This defines a keyword called `places` with the following:
+
+- `threshold`: The threshold above which the email is marked as suspicious. In this case, if the occurrences percentage exceeds 0.5%, the email will be marked as suspicious with the `places` keyword.
+- `description`: Displayed to the user when they view an email marked with `places`.
+- `keywords`: The words and phrases that define this keyword. The Classify worker searches for occurrences of these.
+
+"Occurrence percentage" is defined by the following algorithms:
+
+**Separate words and phrases**
+
+- For each keyword:
+- If it has a space in it, add it to the set of suspicious phrases
+- Otherwise, it's a word; _stem it_ and add it to the set of suspicious words
+
+**Calculate word suspicion**
+
+- Take the plain English text content of the email
+- Total = count of all words in email
+- Stem all words in it
+- Suspicious = count of all words that also appear in the set of suspicious words (multiple occurrences count multiple times)
+- Word occurrence = suspicious / total
+
+**Calculate phrase suspicion**
+
+- Take the plain English text content of the email
+- Total = count of all words in email
+- Suspicious = count of all occurrences of all suspicious phrases in the content (multiple occurrences count multiple times)
+- Phrase occurrence = suspicious / total
+
+**Calculate occurrence percentage**
+
+- Occurrence percentage = phrase suspicion + word suspicion (this can exceed 100%)
 
 ## Models
 
@@ -60,7 +109,13 @@ This application uses only one model: `message`. Each row represents one [Gmail 
 
 ## Workers
 
-TODO
+### `src/workers/persist.ts`
+
+The Persist worker pages through the inbox and saves any new messages to the database.
+
+### `src/workers/classify.ts`
+
+The Classify worker runs after each Persist run. It analyzes the text content of any messages that have not yet been tagged, then it applies tags and labels them in Gmail.
 
 ## Project Layout
 
@@ -138,6 +193,8 @@ This is used by the `storage` library to persist critical credentials onto the d
 
 This app is **not** production-ready and should never be deployed to a public system. It is not secure, does not store data securely, and will expose all of your indexed email to anyone who finds it. **Do not deploy this app.**
 
+See also the entire list of code TODOs by running `yarn todo`.
+
 - No authentication
 - No multi-user support
 - Emails are stored in plaintext at rest
@@ -146,6 +203,22 @@ This app is **not** production-ready and should never be deployed to a public sy
 - `<style>` tags are stripped, but the CSS content remains in email bodies
 - Not yet able to get content out of a body attachment
 - Router is unused, but should be used to hold the view state (which page and email are you looking at?) so that refreshing the page doesn't lose your spot
+- No awareness of API rate limits
+- No debug levels; debug messages spam the console
+- No way to reclassify messages after they've been initially classified
+- Reclassifying a message does not reset existing Yavin labels
+- Fetch window builtin is hacked into the frontend, and types aren't yet validating
+- CSS and links remain in the email text body, leading to false negatives
+- No support for token refresh, invalidating token on scopes change
+- Wasteful API calls:
+  - Classify worker checks label existence on every batch
+  - Classify worker applies labels to individual emails rather than batching
+  - Persist worker does not stop paging once it sees an email that is in the DB
+- Frontend build is totally untested
+- Frontend only runs via dev server, for now
+- Frontend is not served from backend
+- Janky types symlink hack is janky, and frontend/backend projects should be in Yarn workspaces
+- Keywords list has super-aggressive thresholds that have NOT been tuned with a proper training set
 
 # TODO
 
@@ -170,8 +243,10 @@ This app is **not** production-ready and should never be deployed to a public sy
 - [x] List TODOs command
 - [x] Implement pagination in fetch emails
 - [x] Fix files with pre-commit hook
+- [x] Finish README
 - [ ] Server REST spec
 - [ ] Use `internalDate` for parsing received-at date
+- [x] Tune params for keyword tagging
 
 # Stretch Goals
 
