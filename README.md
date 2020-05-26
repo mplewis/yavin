@@ -18,7 +18,7 @@ cd yavin
 docker-compose up
 ```
 
-**Or,:** do it by hand with a Postgres server running locally on port 5432, allowing all connections for user `postgres` with no password:
+**Or,** do it by hand with a Postgres server running locally on port 5432, allowing all connections for user `postgres` with no password:
 
 ```
 # Make sure your Postgres server is started!
