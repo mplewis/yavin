@@ -12,3 +12,5 @@ secrets
 
 src/sandbox.ts
 ormconfig.json
+
+postgres_docker_data

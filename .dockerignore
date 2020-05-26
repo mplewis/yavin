@@ -1,7 +1,8 @@
 .git/
 build/
 coverage/
+frontend/node_modules/
 node_modules/
+postgres_docker_data/
 secrets/credentials
 secrets/token
-frontend/node_modules/
