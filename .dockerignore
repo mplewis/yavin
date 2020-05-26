@@ -2,5 +2,6 @@
 build/
 coverage/
 node_modules/
-secrets/
+secrets/credentials
+secrets/token
 frontend/node_modules/

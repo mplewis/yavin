@@ -24,11 +24,6 @@ const { keywords: KEYWORDS } = parseKeywordLists(RAW_KEYWORDS_YAML);
 
 let workersStarted = false;
 
-// Crash on unhandled promise rejections
-process.on('unhandledRejection', (up) => {
-  throw up;
-});
-
 // HACK: Stolen from Express because I can't get it to import
 interface Query {
   [key: string]: string | Query | Array<string | Query>;
@@ -173,9 +168,15 @@ async function main(): Promise<void> {
   const port = process.env.PORT || DEFAULT_PORT;
   await createConnection();
   const app = await createApp();
-  // Start workers right away if the client is ready (has creds and token)
-  startWorkers();
-  // Otherwise, the router will handle it after the user completes the auth flow
+
+  try {
+    // Start workers right away if the client is ready (has creds and token)
+    await startWorkers();
+  } catch (e) {
+    // The client isn't ready. That's OK, the user needs to onboard
+  }
+
+  // Otherwise, the router will handle it after the user completes onboarding
   installRouter({ app, onSigninComplete: startWorkers });
   app.listen(port, () => {
     console.log(`Visit http://localhost:${port} to start using Yavin.`);
