@@ -1,6 +1,10 @@
-# yavin
+# Yavin
 
-Scan your email for treachery
+Scan your email for treachery.
+
+- Search for occurrences of specific keywords and phrases
+- Review suspicious emails in the Yavin interface to understand possible scams
+- Tag emails in your Gmail inbox so you can review anything suspicious without leaving Gmail
 
 # Usage
 
