@@ -168,9 +168,15 @@ async function main(): Promise<void> {
   const port = process.env.PORT || DEFAULT_PORT;
   await createConnection();
   const app = await createApp();
-  // Start workers right away if the client is ready (has creds and token)
-  startWorkers();
-  // Otherwise, the router will handle it after the user completes the auth flow
+
+  try {
+    // Start workers right away if the client is ready (has creds and token)
+    startWorkers();
+  } catch (e) {
+    // The client isn't ready. That's OK, the user needs to onboard
+  }
+
+  // Otherwise, the router will handle it after the user completes onboarding
   installRouter({ app, onSigninComplete: startWorkers });
   app.listen(port, () => {
     console.log(`Visit http://localhost:${port} to start using Yavin.`);

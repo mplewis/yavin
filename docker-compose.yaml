@@ -1,0 +1,19 @@
+version: '3.8'
+services:
+  postgres:
+    image: postgres:10
+    ports:
+      - 5432
+    environment:
+      - POSTGRES_HOST_AUTH_METHOD=trust
+    volumes:
+      - ./postgres_docker_data:/var/lib/postgresql/data
+  app:
+    build: .
+    ports:
+      - 9999:9999
+      - 8080:8080
+    depends_on:
+      - postgres
+    volumes:
+      - ./secrets:/app/secrets

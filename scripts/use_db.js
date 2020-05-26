@@ -1,15 +1,17 @@
 #!/usr/bin/env node
+/* eslint-disable @typescript-eslint/no-var-requires */
+/* eslint-disable @typescript-eslint/explicit-function-return-type */
 
 const { writeFileSync } = require('fs-extra');
 const { Client } = require('pg');
 
 const ORMCONFIG_TARGET_PATH = 'ormconfig.json';
-const VALID_ENVS = ['dev', 'test', 'prod'];
+const VALID_ENVS = ['dev', 'test', 'prod', 'docker'];
 const VALID_ENVS_MSG = `Valid envs: ${VALID_ENVS.join(', ')}`;
 
 const ORMCONFIG_TEMPLATE = {
   type: 'postgres',
-  host: 'localhost',
+  // host: 'localhost',
   port: 5432,
   username: 'postgres',
   password: '',
@@ -33,40 +35,62 @@ function quit(msg) {
   process.exit(1);
 }
 
+function selectHost(env) {
+  if (env === 'docker') return 'postgres';
+  return 'localhost';
+}
+
 function selectDatabase(env) {
   return `yavin_${env}`;
 }
 
 function buildOrmconfig(env) {
+  const host = selectHost(env);
   const database = selectDatabase(env);
-  const ormconfig = { ...ORMCONFIG_TEMPLATE, database };
+  const ormconfig = { ...ORMCONFIG_TEMPLATE, host, database };
   return JSON.stringify(ormconfig, null, 2);
 }
 
 function wipeTestDatabase(env) {
   const database = selectDatabase(env);
-  if (env !== 'test') {
-    console.log(`Refusing to wipe non-test database ${database}`);
+  if (!['yavin_test', 'yavin_docker'].includes(database)) {
+    console.log(`Refusing to wipe database ${database}`);
     return Promise.resolve();
   }
 
-  const client = new Client({
-    host: 'localhost',
+  const config = {
+    host: selectHost(env),
     port: 5432,
     user: 'postgres',
     password: '',
+    statement_timeout: 5000,
+    query_timeout: 5000,
+  };
+  const client = new Client(config);
+
+  client.on('error', (err) => {
+    console.error(err);
+    process.exit(1);
   });
-  client.connect();
+
+  console.log(`Connecting to ${database}`);
+  console.log(config);
 
   return new Promise((resolve, reject) => {
-    client.query(`DROP DATABASE ${database}`, (err) => {
-      if (err) console.log(err.message);
-      client.query(`CREATE DATABASE ${database}`, (err2) => {
-        client.end();
-        if (err2) return reject(err2);
-        console.log(`Database ${database} (re)created and made pristine`);
-        return resolve();
+    client.connect((err0) => {
+      if (err0) return reject(err0);
+      console.log(`Dropping ${database}`);
+      client.query(`DROP DATABASE ${database}`, (err) => {
+        if (err) console.log(err.message);
+        console.log(`Creating ${database}`);
+        client.query(`CREATE DATABASE ${database}`, (err2) => {
+          client.end();
+          if (err2) return reject(err2);
+          console.log(`Database ${database} (re)created and made pristine`);
+          return resolve();
+        });
       });
+      return undefined;
     });
   });
 }
