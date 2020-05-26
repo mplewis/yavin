@@ -171,7 +171,7 @@ async function main(): Promise<void> {
 
   try {
     // Start workers right away if the client is ready (has creds and token)
-    await startWorkers();
+    startWorkers();
   } catch (e) {
     // The client isn't ready. That's OK, the user needs to onboard
   }
