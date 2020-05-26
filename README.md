@@ -10,12 +10,6 @@ Scan your email for treachery.
 
 ## Quick Start
 
-### Start Postgres
-
-You'll need to configure a local instance of Postgres that accepts all connections from localhost without a password.
-
-### Start the app
-
 In a terminal in this project's directory, start the app using Docker Compose:
 
 ```
@@ -28,6 +22,7 @@ docker-compose up
 
 ```
 # Make sure your Postgres server is started!
+sudo service postgresql start
 # Clone this project
 git clone https://github.com/mplewis/yavin
 cd yavin
