@@ -22,6 +22,7 @@ interface RenderArgs {
 
 // TODO: Creating the wrong kind of app returns the wrong kind of credentials
 // (e.g. `installed` not `web`). We don't validate that at this time.
+/** Credentials for a Google application set to "Web server" mode. */
 interface Credentials {
   /* eslint-disable camelcase */
   web: {
@@ -32,11 +33,23 @@ interface Credentials {
   /* eslint-enable camelcase */
 }
 
+/**
+ * Guard function. True if there is more than one file, false otherwise.
+ * @param thing The server multipart attachment that might be one or more UploadedFiles
+ */
 function isFileArray(
   thing: UploadedFile | UploadedFile[],
 ): thing is UploadedFile[] {
   return Object.prototype.hasOwnProperty.call(thing, 'length');
 }
+
+/**
+ * Render a tutorial step for the user and print a message to the console.
+ * @param args.res The Express response object to which the HTML should be rendered
+ * @param args.msg The message to print for the user in the console
+ * @param args.templatePath The path to the Pug template to render
+ * @param args.templateArgs The locals to render into the Pug template
+ */
 function guideNextStep({
   res,
   msg,
@@ -51,6 +64,11 @@ function guideNextStep({
   res.send(html);
 }
 
+/**
+ * Get the URL to send the user to for authorizing access to their Gmail account.
+ * @param creds The Google app credentials to be authorized for access
+ * @param scope The Gmail access scopes to ask the user for access to
+ */
 function gmailAuthUrlForScopes(
   { web: c }: Credentials,
   scope: string[],
@@ -67,6 +85,12 @@ function gmailAuthUrlForScopes(
   });
 }
 
+/**
+ * After a user authorizes access to their Gmail account, exchange the code for long-lived
+ * OAuth2 tokens.
+ * @param creds The Google app credentials
+ * @param code The code to exchange for a set of auth tokens
+ */
 async function exchangeCodeForToken(
   { web: c }: Credentials,
   code: string,

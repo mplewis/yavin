@@ -47,7 +47,16 @@ function work(name: string, task: () => any): void {
 
 type Plucker = (key: string) => string | null;
 type NumPlucker = (key: string, dfault: number) => number;
-function plucker(query: Query): { pluck: Plucker; pluckNum: NumPlucker } {
+/**
+ * From an Express request, return functions to help extract and structure specific named arguments
+ * from the query.
+ * @param query The Express query to generate pluckers for
+ */
+function plucker(query: Query): { pluck: Plucker; pluckInt: NumPlucker } {
+  /**
+   * Get a named string key. Returns null if the key is not present.
+   * @param key The key to pluck
+   */
   function pluck(key: string): string | null {
     const raw = query[key];
     if (!raw) return null;
@@ -59,15 +68,24 @@ function plucker(query: Query): { pluck: Plucker; pluckNum: NumPlucker } {
     return raw;
   }
 
-  function pluckNum(key: string, dfault: number): number {
+  /**
+   * Get a named key parsed as an integer.
+   * @param key The key to pluck
+   * @param dfault If the key is not present, use this value
+   */
+  function pluckInt(key: string, dfault: number): number {
     const raw = pluck(key);
     if (!raw) return dfault;
     return parseInt(raw, 10);
   }
 
-  return { pluck, pluckNum };
+  return { pluck, pluckInt };
 }
 
+/**
+ * Structure and parse a DB message for use in the frontend.
+ * @param message The DB message model to restructure
+ */
 function convertMessage(message: Message): EmailResponse {
   const {
     id, gmailId, data, tags, receivedAt,
@@ -91,17 +109,27 @@ function convertMessage(message: Message): EmailResponse {
   };
 }
 
+/**
+ * Create the Express server.
+ */
 async function createApp(): Promise<Express> {
   const app = express();
   app.use(cors({ origin: ORIGIN }));
   app.use(fileUpload());
 
+  /**
+   * Get the data for a batch of emails.
+   * Params:
+   *   - take: The limit of emails to take from the DB
+   *   - skip: The offset of emails to retrieve
+   *   - filter: Optional. The name of the filter to use.
+   */
   app.get('/emails', async (req, res) => {
-    const { pluck, pluckNum } = plucker(req.query);
+    const { pluck, pluckInt } = plucker(req.query);
     const findParams: FindManyOptions<Message> = {
       order: { receivedAt: 'DESC' },
-      take: pluckNum('limit', DEFAULT_PAGE_COUNT),
-      skip: pluckNum('offset', 0),
+      take: pluckInt('limit', DEFAULT_PAGE_COUNT),
+      skip: pluckInt('offset', 0),
     };
 
     const filterName = pluck('filter');
@@ -124,6 +152,11 @@ async function createApp(): Promise<Express> {
     res.json(emails);
   });
 
+  /**
+   * Get the count of emails in the DB.
+   * Params:
+   *   - filter: Optional. The name of the filter to use.
+   */
   app.get('/emails/count', async (req, res) => {
     const { pluck } = plucker(req.query);
     const findParams: FindManyOptions<Message> = {};
@@ -147,12 +180,18 @@ async function createApp(): Promise<Express> {
     res.json(count);
   });
 
+  /**
+   * Get the keywords config used for classifying emails.
+   */
   app.get('/keywords', async (_req, res) => {
     res.json(KEYWORDS);
   });
   return app;
 }
 
+/**
+ * Start persist and classify workers if the Gmail client is ready.
+ */
 async function startWorkers(): Promise<void> {
   if (workersStarted) return;
   const client = await createClient();
@@ -164,6 +203,9 @@ async function startWorkers(): Promise<void> {
   workersStarted = true;
 }
 
+/**
+ * Entry point. Send the user to localhost:9999 to start using Yavin.
+ */
 async function main(): Promise<void> {
   const port = process.env.PORT || DEFAULT_PORT;
   await createConnection();

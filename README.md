@@ -12,11 +12,21 @@ You'll need to configure a local instance of Postgres that accepts all connectio
 
 ### Start the app
 
-In a terminal in this project's directory:
+In a terminal in this project's directory, start the app using Docker Compose:
 
 ```
+git clone https://github.com/mplewis/yavin
+cd yavin
+docker-compose up
+```
+
+**Or,:** do it by hand with a Postgres server running locally on port 5432, allowing all connections for user `postgres` with no password:
+
+```
+# Make sure your Postgres server is started!
 # Clone this project
 git clone https://github.com/mplewis/yavin
+cd yavin
 # Install all dependencies, including dev dependencies
 yarn install
 # Start the frontend and backend servers
