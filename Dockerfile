@@ -12,6 +12,9 @@ COPY yarn.lock /app/yarn.lock
 
 RUN yarn install
 
+RUN apt-get update
+RUN apt-get install -y postgresql
+
 COPY . /app
 
 CMD ["yarn", "start:docker"]

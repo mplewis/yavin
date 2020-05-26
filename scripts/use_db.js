@@ -58,23 +58,27 @@ function wipeTestDatabase(env) {
     return Promise.resolve();
   }
 
-  const client = new Client({
+  const config = {
     host: selectHost(env),
     port: 5432,
     user: 'postgres',
     password: '',
     statement_timeout: 5000,
     query_timeout: 5000,
-  });
+  };
+  const client = new Client(config);
 
   client.on('error', (err) => {
     console.error(err);
     process.exit(1);
   });
 
+  console.log(`Connecting to ${database}`);
+  console.log(config);
+
   return new Promise((resolve, reject) => {
-    console.log(`Connecting to ${database}`);
-    client.connect().then(() => {
+    client.connect((err0) => {
+      if (err0) return reject(err0);
       console.log(`Dropping ${database}`);
       client.query(`DROP DATABASE ${database}`, (err) => {
         if (err) console.log(err.message);
@@ -86,6 +90,7 @@ function wipeTestDatabase(env) {
           return resolve();
         });
       });
+      return undefined;
     });
   });
 }

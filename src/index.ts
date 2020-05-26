@@ -24,6 +24,11 @@ const { keywords: KEYWORDS } = parseKeywordLists(RAW_KEYWORDS_YAML);
 
 let workersStarted = false;
 
+// Crash on unhandled promise rejections
+process.on('unhandledRejection', (up) => {
+  throw up;
+});
+
 // HACK: Stolen from Express because I can't get it to import
 interface Query {
   [key: string]: string | Query | Array<string | Query>;
